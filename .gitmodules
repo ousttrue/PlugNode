@@ -1,3 +1,6 @@
 [submodule "dependencies/lua"]
 	path = dependencies/lua
 	url = https://github.com/lua/lua.git
+[submodule "dependencies/perilune"]
+	path = dependencies/perilune
+	url = https://github.com/ousttrue/perilune.git
