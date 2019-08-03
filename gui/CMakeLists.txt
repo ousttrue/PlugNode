@@ -1,4 +1,4 @@
-SET(SUB_NAME plugnode)
+SET(SUB_NAME plugnode_gui)
 FILE(GLOB SRC
     *.cpp
     ) 

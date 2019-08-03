@@ -8,7 +8,7 @@
             "name": "plugnode",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/plugnode/plugnode.exe",
+            "program": "${workspaceFolder}/build/gui/plugnode_gui.exe",
             "args": [
                 "plugnode.lua"
             ],
