@@ -1,0 +1,32 @@
+{
+    "cSpell.words": [
+        "NOENV",
+        "TLIGHTUSERDATA",
+        "TTABLE",
+        "TUSERDATA",
+        "dofile",
+        "dolibrary",
+        "imgui",
+        "isnil",
+        "laction",
+        "lmsg",
+        "lstop",
+        "narg",
+        "nlohmann",
+        "nres",
+        "pcall",
+        "plog",
+        "pmain",
+        "prmt",
+        "pushcclosure",
+        "pushcfunction",
+        "rawgeti",
+        "rawseti",
+        "requiref",
+        "toboolean",
+        "tointeger",
+        "topointer",
+        "touserdata",
+        "upvalueindex"
+    ]
+}
