@@ -27,10 +27,12 @@ TARGET_INCLUDE_DIRECTORIES(${SUB_NAME} PUBLIC
     ${DEPENDENCIES_DIR}/imgui/examples
     ${DEPENDENCIES_DIR}/perilune/include
     ${LUA_DIR}
+    ../plugnode
     )
 TARGET_LINK_LIBRARIES(${SUB_NAME}
     lualib
     winmm
     d3d11
     d3dcompiler
+    plugnode
     )

@@ -28,5 +28,10 @@
         "topointer",
         "touserdata",
         "upvalueindex"
-    ]
+    ],
+    "files.associations": {
+        "exception": "cpp",
+        "functional": "cpp",
+        "memory": "cpp"
+    }
 }
