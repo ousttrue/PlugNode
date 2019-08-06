@@ -24,7 +24,7 @@ void lua_require_plugnode(lua_State *L)
     win32Window
         .StaticMethod("new", []() { return new Win32Window; })
         .MetaMethod(perilune::MetaKey::__gc, [](Win32Window *p) { delete p; })
-        .IndexDispatcher([](auto d) {
+        .MetaIndexDispatcher([](auto d) {
             d->Method("create", &Win32Window::Create);
             d->Method("is_running", &Win32Window::IsRunning);
             d->Method("get_state", &Win32Window::GetState);
@@ -36,7 +36,7 @@ void lua_require_plugnode(lua_State *L)
     dx11
         .StaticMethod("new", []() { return new DX11Context; })
         .MetaMethod(perilune::MetaKey::__gc, [](DX11Context *p) { delete p; })
-        .IndexDispatcher([](auto d) {
+        .MetaIndexDispatcher([](auto d) {
             d->Method("create", &DX11Context::Create);
             d->Method("get_context", &DX11Context::GetDeviceContext);
             d->Method("new_frame", &DX11Context::NewFrame);
@@ -49,7 +49,7 @@ void lua_require_plugnode(lua_State *L)
     dx11scene
         .StaticMethod("new", []() { return new DX11Renderer; })
         .MetaMethod(perilune::MetaKey::__gc, [](DX11Renderer *p) { delete p; })
-        .IndexDispatcher([](auto d) {
+        .MetaIndexDispatcher([](auto d) {
             d->Method("draw_teapot", &DX11Renderer::DrawTeapot);
         })
         .LuaNewType(L);
@@ -59,7 +59,7 @@ void lua_require_plugnode(lua_State *L)
     orbit_camera
         .StaticMethod("new", []() { return new OrbitCamera(); })
         .MetaMethod(perilune::MetaKey::__gc, [](OrbitCamera *p) { delete p; })
-        .IndexDispatcher([](auto d) {
+        .MetaIndexDispatcher([](auto d) {
             d->Method("window_input", &OrbitCamera::WindowInput);
             d->Method("get_state", &OrbitCamera::GetState);
         })
@@ -70,7 +70,7 @@ void lua_require_plugnode(lua_State *L)
     gui
         .StaticMethod("new", []() { return new GUI; })
         .MetaMethod(perilune::MetaKey::__gc, [](GUI *p) { delete p; })
-        .IndexDispatcher([](auto d) {
+        .MetaIndexDispatcher([](auto d) {
             d->Method("initialize", &GUI::Initialize);
             d->Method("new_frame", &GUI::NewFrame);
             d->Method("show", &GUI::Show);
@@ -88,7 +88,7 @@ void lua_require_plugnode(lua_State *L)
 
     static perilune::UserType<NodeDefinition *> nodeDefinition;
     nodeDefinition
-        .IndexDispatcher([](auto d) {
+        .MetaIndexDispatcher([](auto d) {
             d->Getter("name", &NodeDefinition::Name);
             d->Getter("inputs", [](NodeDefinition *p) { return &p->Inputs; });
             d->Getter("outputs", [](NodeDefinition *p) { return &p->Outputs; });
@@ -100,7 +100,7 @@ void lua_require_plugnode(lua_State *L)
     nodeManager
         .StaticMethod("new", []() { return new NodeManager; })
         .MetaMethod(perilune::MetaKey::__gc, [](NodeManager *p) { delete p; })
-        .IndexDispatcher([](auto d) {
+        .MetaIndexDispatcher([](auto d) {
             d->Method("add_node", &NodeManager::AddNode);
             d->Method("get_count", &NodeManager::GetCount);
             d->Method("get_node", &NodeManager::GetNode);
