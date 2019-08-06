@@ -16,4 +16,5 @@ ADD_COMPILE_OPTIONS(
     /EHsc
     )
 
-SUBDIRS(lualib plugnode gui)
+SUBDIRS(lualib gui app)
+
