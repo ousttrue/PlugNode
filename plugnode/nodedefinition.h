@@ -6,6 +6,12 @@
 namespace plugnode
 {
 
+struct NodeSocket
+{
+    std::string name;
+    std::string type;
+};
+
 class NodeDefinition
 {
     NodeDefinition(const NodeDefinition &) = delete;
@@ -22,8 +28,8 @@ class NodeDefinition
 
 public:
     std::string Name;
-    std::vector<std::string> Inputs;
-    std::vector<std::string> Outputs;
+    std::vector<NodeSocket> Inputs;
+    std::vector<NodeSocket> Outputs;
 
     friend class NodeManager;
 };

@@ -15,6 +15,24 @@ extern "C"
 #include <plugnode.h>
 #include <perilune.h>
 
+namespace perilune
+{
+
+template <>
+struct LuaTable<plugnode::NodeSocket>
+{
+    static plugnode::NodeSocket Get(lua_State *L, int index)
+    {
+        auto table = LuaTableToTuple<std::string, std::string>(L, index);
+        return plugnode::NodeSocket{
+            std::get<0>(table),
+            std::get<1>(table),
+        };
+    }
+};
+
+} // namespace perilune
+
 void lua_require_plugnode(lua_State *L)
 {
     auto top = lua_gettop(L);
@@ -79,32 +97,45 @@ void lua_require_plugnode(lua_State *L)
         .LuaNewType(L);
     lua_setfield(L, -2, "gui");
 
-    using namespace plugnode;
-    static perilune::UserType<std::vector<std::string> *> stringList;
+    static perilune::UserType<plugnode::NodeSocket> nodeSocket;
+    nodeSocket
+        .StaticMethod("new", [](std::string name, std::string type) {
+            return plugnode::NodeSocket{name, type};
+        })
+        .MetaMethod(perilune::MetaKey::__tostring, [](plugnode::NodeSocket *socket) {
+            std::stringstream ss;
+            ss << "[" << socket->type << "]" << socket->name;
+            return ss.str();
+        })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "node_socket");
+
+    static perilune::UserType<std::vector<plugnode::NodeSocket> *>
+        stringList;
     perilune::AddDefaultMethods(stringList);
     stringList
         .LuaNewType(L);
     lua_setfield(L, -2, "string_list");
 
-    static perilune::UserType<NodeDefinition *> nodeDefinition;
+    static perilune::UserType<plugnode::NodeDefinition *> nodeDefinition;
     nodeDefinition
         .MetaIndexDispatcher([](auto d) {
-            d->Getter("name", &NodeDefinition::Name);
-            d->Getter("inputs", [](NodeDefinition *p) { return &p->Inputs; });
-            d->Getter("outputs", [](NodeDefinition *p) { return &p->Outputs; });
+            d->Getter("name", &plugnode::NodeDefinition::Name);
+            d->Getter("inputs", [](plugnode::NodeDefinition *p) { return &p->Inputs; });
+            d->Getter("outputs", [](plugnode::NodeDefinition *p) { return &p->Outputs; });
         })
         .LuaNewType(L);
     lua_setfield(L, -2, "node_definition");
 
-    static perilune::UserType<NodeManager *> nodeManager;
+    static perilune::UserType<plugnode::NodeManager *> nodeManager;
     nodeManager
-        .StaticMethod("new", []() { return new NodeManager; })
-        .MetaMethod(perilune::MetaKey::__gc, [](NodeManager *p) { delete p; })
+        .StaticMethod("new", []() { return new plugnode::NodeManager; })
+        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeManager *p) { delete p; })
         .MetaIndexDispatcher([](auto d) {
-            d->Method("add_node", &NodeManager::AddNode);
-            d->Method("get_count", &NodeManager::GetCount);
-            d->Method("get_node", &NodeManager::GetNode);
-            d->IndexGetter([](NodeManager *l, int i) {
+            d->Method("add_node", &plugnode::NodeManager::AddNode);
+            d->Method("get_count", &plugnode::NodeManager::GetCount);
+            d->Method("get_node", &plugnode::NodeManager::GetNode);
+            d->IndexGetter([](plugnode::NodeManager *l, int i) {
                 return l->GetNode(i - 1);
             });
         })

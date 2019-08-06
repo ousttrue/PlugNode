@@ -3,13 +3,9 @@ print("create window")
 function showNode(node)
     print(node.name)
     print('[input]')
-    for i, input in ipairs(node.inputs) do 
-        print(i, input)
-    end
+    for i, input in ipairs(node.inputs) do print(i, input) end
     print('[output]')
-    for i, output in ipairs(node.outputs) do 
-        print(i, output)
-    end
+    for i, output in ipairs(node.outputs) do print(i, output) end
 end
 
 function showNodes(node_manager)
@@ -24,9 +20,9 @@ end
 local node_manager = plugnode.node_manager.new()
 showNodes(node_manager)
 local node = node_manager.add_node("int source")
-node.inputs.push_back("float")
-node.inputs.push_back("float")
-node.outputs.push_back("float")
+node.inputs.push_back{"x", "float"}
+node.inputs.push_back{"y", "float"}
+node.outputs.push_back{"z", "float"}
 showNodes(node_manager)
 
 local window = plugnode.window.new()
