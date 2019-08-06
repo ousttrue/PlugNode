@@ -23,10 +23,9 @@ TARGET_INCLUDE_DIRECTORIES(${SUB_NAME} PUBLIC
     ${DEPENDENCIES_DIR}/plog/include
     ${DEPENDENCIES_DIR}/sol2/include
     ${DEPENDENCIES_DIR}/im3d/examples/common
-    ${DEPENDENCIES_DIR}/imgui
-    ${DEPENDENCIES_DIR}/imgui/examples
     ${DEPENDENCIES_DIR}/perilune/include
     ${LUA_DIR}
+    ../common
     ../gui
     )
 TARGET_LINK_LIBRARIES(${SUB_NAME}
