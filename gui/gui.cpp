@@ -1,6 +1,5 @@
 #include "gui.h"
 #include "window_state.h"
-#include "nodegraph.h"
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
@@ -45,9 +44,6 @@ void GUI::Show()
 {
     static bool showDemoWindow = true;
     ImGui::ShowDemoWindow(&showDemoWindow);
-
-    static bool showNodeGraph = true;
-    ShowNodeGraph(&showNodeGraph);
 }
 
 void GUI::Render()

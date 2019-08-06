@@ -12,6 +12,7 @@ extern "C"
 #include "dx11_renderer.h"
 #include "orbit_camera.h"
 #include "gui.h"
+#include "nodegraph.h"
 #include <plugnode.h>
 #include <perilune.h>
 
@@ -97,6 +98,18 @@ void lua_require_plugnode(lua_State *L)
         .LuaNewType(L);
     lua_setfield(L, -2, "gui");
 
+    static perilune::UserType<plugnode::NodeGraph *> nodegraph;
+    nodegraph
+        .StaticMethod("new", []() { return new plugnode::NodeGraph; })
+        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeGraph *p) { delete p; })
+        .MetaIndexDispatcher([](auto d) {
+            // d->Method("load", &plugnode::NodeGraph::LoadDefinitions);
+            d->Method("load", [](plugnode::NodeGraph *p, const plugnode::NodeDefinition *d, int len) { p->LoadDefinitions(d, len); });
+            d->Method("show", &plugnode::NodeGraph::ShowGui);
+        })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "graph");
+
     static perilune::UserType<plugnode::NodeSocket> nodeSocket;
     nodeSocket
         .StaticMethod("new", [](std::string name, std::string type) {
@@ -134,7 +147,7 @@ void lua_require_plugnode(lua_State *L)
         .MetaIndexDispatcher([](auto d) {
             d->Method("add_node", &plugnode::NodeManager::AddNode);
             d->Method("get_count", &plugnode::NodeManager::GetCount);
-            d->Method("get_node", &plugnode::NodeManager::GetNode);
+            d->Method("get_node", [](plugnode::NodeManager *p, int i) { return p->GetNode(i - 1); });
             d->IndexGetter([](plugnode::NodeManager *l, int i) {
                 return l->GetNode(i - 1);
             });

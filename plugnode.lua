@@ -43,6 +43,9 @@ local camera = plugnode.orbit_camera.new()
 local gui = plugnode.gui.new()
 gui.initialize(hwnd, device, context)
 
+local graph = plugnode.graph.new()
+graph.load(node_manager[1], node_manager.get_count())
+
 while window.is_running() do
 
     -- update
@@ -54,7 +57,8 @@ while window.is_running() do
         camera.window_input(window_state)
     end
 
-    gui.show()
+    -- gui.show()
+    graph.show()
 
     local context = dx11.new_frame(window_state)
 

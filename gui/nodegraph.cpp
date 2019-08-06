@@ -5,8 +5,20 @@
 #include <plog/Log.h>
 #include <vector>
 
+// Creating a node graph editor for ImGui
+// Quick demo, not production code! This is more of a demo of how to use ImGui to create custom stuff.
+// Better version by @daniel_collin here https://gist.github.com/emoon/b8ff4b4ce4f1b43e79f2
+// See https://github.com/ocornut/imgui/issues/306
+// v0.03: fixed grid offset issue, inverted sign of 'scrolling'
+// Animated gif: https://cloud.githubusercontent.com/assets/8225057/9472357/c0263c04-4b4c-11e5-9fdf-2cd4f33f6582.gif
+
+#include <math.h> // fmodf
+
 const float MIN_SCALING = 0.3f;
 const float MAX_SCALING = 2.0f;
+
+namespace plugnode
+{
 
 struct NodeLink
 {
@@ -21,18 +33,7 @@ struct NodeLink
     }
 };
 
-// Creating a node graph editor for ImGui
-// Quick demo, not production code! This is more of a demo of how to use ImGui to create custom stuff.
-// Better version by @daniel_collin here https://gist.github.com/emoon/b8ff4b4ce4f1b43e79f2
-// See https://github.com/ocornut/imgui/issues/306
-// v0.03: fixed grid offset issue, inverted sign of 'scrolling'
-// Animated gif: https://cloud.githubusercontent.com/assets/8225057/9472357/c0263c04-4b4c-11e5-9fdf-2cd4f33f6582.gif
-
-#include <math.h> // fmodf
-
-namespace edon
-{
-class Nodes
+class NodeGraphImpl
 {
     std::vector<Node> m_nodes;
     std::vector<NodeLink> m_links;
@@ -42,7 +43,7 @@ class Nodes
     int m_node_selected = -1;
 
 public:
-    Nodes()
+    NodeGraphImpl()
     {
         m_nodes.push_back(Node(0, "MainTex", std::array<float, 2>{40, 50}, 0.5f, ImColor(255, 100, 100), 1, 1));
         m_nodes.push_back(Node(1, "BumpMap", std::array<float, 2>{40, 150}, 0.42f, ImColor(200, 100, 200), 1, 1));
@@ -232,30 +233,44 @@ public:
         ImGui::PopStyleVar(2);
     }
 
+    bool m_show = true;
     void Show()
     {
-        Context context;
+        // ImGui::SetNextWindowSize(ImVec2(700, 600), ImGuiSetCond_FirstUseEver);
+        if (ImGui::Begin("Example: Custom Node Graph", &m_show))
+        {
+            Context context;
 
-        ShowLeftPanel(&context);
+            ShowLeftPanel(&context);
 
-        ImGui::SameLine();
-        ImGui::BeginGroup();
-        ShowRightPanel(&context);
-        ImGui::EndGroup();
+            ImGui::SameLine();
+            ImGui::BeginGroup();
+            ShowRightPanel(&context);
+            ImGui::EndGroup();
+        }
+        ImGui::End();
     }
 };
-} // namespace edon
 
-// Really dumb data structure provided for the example.
-// Note that we storing links are INDICES (not ID) to make example code shorter, obviously a bad idea for any general purpose code.
-void ShowNodeGraph(bool *opened)
+NodeGraph::NodeGraph()
+    : m_impl(new NodeGraphImpl)
 {
-    static edon::Nodes s_nodes;
-
-    // ImGui::SetNextWindowSize(ImVec2(700, 600), ImGuiSetCond_FirstUseEver);
-    if (ImGui::Begin("Example: Custom Node Graph", opened))
-    {
-        s_nodes.Show();
-    }
-    ImGui::End();
 }
+
+NodeGraph::~NodeGraph()
+{
+    delete m_impl;
+}
+
+void NodeGraph::LoadDefinitions(const NodeDefinition *p, int len)
+{
+    auto x = *(NodeDefinition**)p;
+    int a = 0;
+}
+
+void NodeGraph::ShowGui()
+{
+    m_impl->Show();
+}
+
+} // namespace plugnode

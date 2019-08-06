@@ -5,7 +5,7 @@
 #include <string>
 #include <array>
 
-namespace edon
+namespace plugnode
 {
 
 struct Context;
@@ -32,4 +32,4 @@ struct Node
     void Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, int *node_selected, float scaling);
 };
 
-} // namespace edon
+} // namespace plugnode

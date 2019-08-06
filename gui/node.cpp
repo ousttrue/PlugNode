@@ -4,7 +4,7 @@
 const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
 const float NODE_SLOT_RADIUS = 4.0f;
 
-namespace edon
+namespace plugnode
 {
 Node::Node(int id, const char *name, const std::array<float, 2> &pos, float value, const ImVec4 &color, int inputs_count, int outputs_count)
     : m_id(id), m_name(name), m_pos(pos)

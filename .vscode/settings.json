@@ -4,6 +4,7 @@
         "TLIGHTUSERDATA",
         "TTABLE",
         "TUSERDATA",
+        "Upvalue",
         "dofile",
         "dolibrary",
         "imgui",

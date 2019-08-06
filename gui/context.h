@@ -1,6 +1,6 @@
 #pragma once
 
-namespace edon
+namespace plugnode
 {
 
 struct Context
@@ -15,4 +15,4 @@ struct Context
     }
 };
 
-} // namespace edon
+} // namespace plugnode
