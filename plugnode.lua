@@ -17,24 +17,23 @@ function showNode(index, node)
     print()
 end
 
-function showNodes(node_manager)
-    print('---- #', node_manager.get_count())
-    for i, node in ipairs(node_manager) do showNode(i, node) end
+function showNodes(graph)
+    print('---- #', graph.get_definition_count())
+    for i, node in ipairs(graph) do showNode(i, node) end
     print('----')
 end
 
-local node_manager = plugnode.node_manager.new()
+local graph = plugnode.graph.new()
 function createNode(name, inputs, outputs)
-    local node = node_manager.add_node(name)
+    local node = graph.create_definition(name)
     for i, p in ipairs(inputs) do node.inputs.push_back(p) end
     for i, p in ipairs(outputs) do node.outputs.push_back(p) end
 end
--- showNodes(node_manager)
 createNode('value', {}, {{'value', 'float'}})
 createNode('out', {{'value', 'float'}}, {})
 createNode('add', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
 createNode('mul', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
-showNodes(node_manager)
+showNodes(graph)
 
 local window = plugnode.window.new()
 local hwnd = window.create(640, 480, "plugnode")
@@ -53,11 +52,6 @@ local camera = plugnode.orbit_camera.new()
 
 local gui = plugnode.gui.new()
 gui.initialize(hwnd, device, context)
-
-local graph = plugnode.graph.new()
-for i, node in ipairs(node_manager) do
-    graph.add_definition(node)
-end
 
 while window.is_running() do
 

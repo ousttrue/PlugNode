@@ -43,7 +43,7 @@ class NodeGraphImpl
     bool m_show_grid = true;
     int m_node_selected = -1;
 
-    std::vector<const NodeDefinition *> m_definitions;
+    std::vector<NodeDefinition *> m_definitions;
 
 public:
     NodeGraphImpl()
@@ -55,15 +55,28 @@ public:
         m_links.push_back(NodeLink(1, 0, 2, 1));
     }
 
+#pragma region Definitions
     void ClearDefinitions()
     {
         m_definitions.clear();
     }
 
-    void AddDefinition(const NodeDefinition *p)
+    void AddDefinition(NodeDefinition *node)
     {
-        m_definitions.push_back(p);
+        m_definitions.push_back(node);
     }
+
+    int GetDefinitionCount() const { return static_cast<int>(m_nodes.size()); }
+
+    NodeDefinition *GetDefinition(int index) const
+    {
+        if (index < 0)
+            return nullptr;
+        if (index >= GetDefinitionCount())
+            return nullptr;
+        return m_definitions[index];
+    }
+#pragma endregion
 
     void ShowLeftPanel(Context *context)
     {
@@ -283,15 +296,26 @@ NodeGraph::~NodeGraph()
     delete m_impl;
 }
 
+#pragma region Definitions
 void NodeGraph::ClearDefinitions()
 {
     m_impl->ClearDefinitions();
 }
 
-void NodeGraph::AddDefinition(const NodeDefinition *p)
+NodeDefinition *NodeGraph::CreateDefinition(const std::string &name)
 {
-    m_impl->AddDefinition(p);
+    auto node = new NodeDefinition(name);
+    m_impl->AddDefinition(node);
+    return node;
 }
+
+int NodeGraph::GetDefinitionCount() const { return m_impl->GetDefinitionCount(); }
+
+NodeDefinition *NodeGraph::GetDefinition(int index) const
+{
+    return m_impl->GetDefinition(index);
+}
+#pragma endregion
 
 void NodeGraph::ShowGui()
 {
