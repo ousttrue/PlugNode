@@ -1,6 +1,7 @@
 #include "nodegraph.h"
 #include "context.h"
 #include "node.h"
+#include "nodedefinition.h"
 #include <imgui.h>
 #include <plog/Log.h>
 #include <vector>
@@ -42,6 +43,8 @@ class NodeGraphImpl
     bool m_show_grid = true;
     int m_node_selected = -1;
 
+    std::vector<const NodeDefinition *> m_definitions;
+
 public:
     NodeGraphImpl()
     {
@@ -50,6 +53,16 @@ public:
         m_nodes.push_back(Node(2, "Combine", std::array<float, 2>{270, 80}, 1.0f, ImColor(0, 200, 100), 2, 2));
         m_links.push_back(NodeLink(0, 0, 2, 0));
         m_links.push_back(NodeLink(1, 0, 2, 1));
+    }
+
+    void ClearDefinitions()
+    {
+        m_definitions.clear();
+    }
+
+    void AddDefinition(const NodeDefinition *p)
+    {
+        m_definitions.push_back(p);
     }
 
     void ShowLeftPanel(Context *context)
@@ -121,12 +134,19 @@ public:
             }
             else
             {
-                if (ImGui::MenuItem("Add"))
+                // if (ImGui::MenuItem("Add"))
+                // {
+                //     m_nodes.push_back(Node((int)m_nodes.size(), "New node", std::array<float, 2>{scene_pos.x, scene_pos.y}, 0.5f, ImColor(100, 100, 200), 2, 2));
+                // }
+                // if (ImGui::MenuItem("Paste", NULL, false, false))
+                // {
+                // }
+                for (auto p : m_definitions)
                 {
-                    m_nodes.push_back(Node((int)m_nodes.size(), "New node", std::array<float, 2>{scene_pos.x, scene_pos.y}, 0.5f, ImColor(100, 100, 200), 2, 2));
-                }
-                if (ImGui::MenuItem("Paste", NULL, false, false))
-                {
+                    if (ImGui::MenuItem(p->Name.c_str()))
+                    {
+                        m_nodes.push_back(Node((int)m_nodes.size(), "New node", std::array<float, 2>{scene_pos.x, scene_pos.y}, 0.5f, ImColor(100, 100, 200), 2, 2));
+                    }
                 }
             }
             ImGui::EndPopup();
@@ -187,6 +207,7 @@ public:
 
         // Open context menu
         ContextMenu(context, offset);
+
         // Scrolling
         if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive())
         {
@@ -262,10 +283,14 @@ NodeGraph::~NodeGraph()
     delete m_impl;
 }
 
-void NodeGraph::LoadDefinitions(const NodeDefinition *p, int len)
+void NodeGraph::ClearDefinitions()
 {
-    auto x = *(NodeDefinition**)p;
-    int a = 0;
+    m_impl->ClearDefinitions();
+}
+
+void NodeGraph::AddDefinition(const NodeDefinition *p)
+{
+    m_impl->AddDefinition(p);
 }
 
 void NodeGraph::ShowGui()

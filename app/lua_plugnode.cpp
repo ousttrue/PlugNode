@@ -104,7 +104,9 @@ void lua_require_plugnode(lua_State *L)
         .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeGraph *p) { delete p; })
         .MetaIndexDispatcher([](auto d) {
             // d->Method("load", &plugnode::NodeGraph::LoadDefinitions);
-            d->Method("load", [](plugnode::NodeGraph *p, const plugnode::NodeDefinition *d, int len) { p->LoadDefinitions(d, len); });
+            d->Method("add_definition", [](plugnode::NodeGraph *p, const plugnode::NodeDefinition *d) {
+                p->AddDefinition(d);
+            });
             d->Method("show", &plugnode::NodeGraph::ShowGui);
         })
         .LuaNewType(L);
@@ -147,7 +149,6 @@ void lua_require_plugnode(lua_State *L)
         .MetaIndexDispatcher([](auto d) {
             d->Method("add_node", &plugnode::NodeManager::AddNode);
             d->Method("get_count", &plugnode::NodeManager::GetCount);
-            d->Method("get_node", [](plugnode::NodeManager *p, int i) { return p->GetNode(i - 1); });
             d->IndexGetter([](plugnode::NodeManager *l, int i) {
                 return l->GetNode(i - 1);
             });

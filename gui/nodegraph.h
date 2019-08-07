@@ -11,7 +11,8 @@ class NodeGraph
 public:
     NodeGraph();
     ~NodeGraph();
-    void LoadDefinitions(const class NodeDefinition *p, int len);
+    void ClearDefinitions();
+    void AddDefinition(const class NodeDefinition *p);
     void ShowGui();
 };
 

@@ -1,28 +1,39 @@
 print("create window")
 
-function showNode(node)
-    print(node.name)
-    print('[input]')
-    for i, input in ipairs(node.inputs) do print(i, input) end
-    print('[output]')
-    for i, output in ipairs(node.outputs) do print(i, output) end
+function showNode(index, node)
+    print(string.format('[%s: %s]', index, node.name))
+    if #node.inputs > 0 then
+        print('input{')
+        for i, input in ipairs(node.inputs) do print(i, input) end
+        print('}')
+    end
+
+    if #node.outputs > 0 then
+        print('output{')
+        for i, output in ipairs(node.outputs) do print(i, output) end
+        print('}')
+    end
+
+    print()
 end
 
 function showNodes(node_manager)
     print('---- #', node_manager.get_count())
-    for i, node in ipairs(node_manager) do
-        print(i)
-        showNode(node)
-    end
+    for i, node in ipairs(node_manager) do showNode(i, node) end
     print('----')
 end
 
 local node_manager = plugnode.node_manager.new()
-showNodes(node_manager)
-local node = node_manager.add_node("int source")
-node.inputs.push_back{"x", "float"}
-node.inputs.push_back{"y", "float"}
-node.outputs.push_back{"z", "float"}
+function createNode(name, inputs, outputs)
+    local node = node_manager.add_node(name)
+    for i, p in ipairs(inputs) do node.inputs.push_back(p) end
+    for i, p in ipairs(outputs) do node.outputs.push_back(p) end
+end
+-- showNodes(node_manager)
+createNode('value', {}, {{'value', 'float'}})
+createNode('out', {{'value', 'float'}}, {})
+createNode('add', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
+createNode('mul', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
 showNodes(node_manager)
 
 local window = plugnode.window.new()
@@ -44,7 +55,9 @@ local gui = plugnode.gui.new()
 gui.initialize(hwnd, device, context)
 
 local graph = plugnode.graph.new()
-graph.load(node_manager[1], node_manager.get_count())
+for i, node in ipairs(node_manager) do
+    graph.add_definition(node)
+end
 
 while window.is_running() do
 
