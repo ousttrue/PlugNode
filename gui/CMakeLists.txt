@@ -14,6 +14,8 @@ TARGET_INCLUDE_DIRECTORIES(${SUB_NAME} PUBLIC
     ${DEPENDENCIES_DIR}/plog/include
     ${DEPENDENCIES_DIR}/imgui
     ${DEPENDENCIES_DIR}/imgui/examples
+    ${DEPENDENCIES_DIR}/lua
+    ${DEPENDENCIES_DIR}/perilune/include
     ../common
     )
 TARGET_LINK_LIBRARIES(${SUB_NAME}

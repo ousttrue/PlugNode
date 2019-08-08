@@ -4,6 +4,7 @@
 #include <imgui_internal.h>
 #include <string>
 #include <array>
+#include <vector>
 
 namespace plugnode
 {
@@ -24,12 +25,36 @@ struct Node
 
     ImColor GetBGColor(const Context &context, int node_selected) const;
 
-    void DrawLeftPanel(int *node_selected, Context *context);
+    void DrawLeftPanel(int *node_selected, Context *context) const;
 
     ImVec2 GetInputSlotPos(int slot_no, float scaling) const;
     ImVec2 GetOutputSlotPos(int slot_no, float scaling) const;
 
     void Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, int *node_selected, float scaling);
+};
+
+struct NodeLink
+{
+    int InputIdx, InputSlot, OutputIdx, OutputSlot;
+
+    NodeLink(int input_idx, int input_slot, int output_idx, int output_slot)
+    {
+        InputIdx = input_idx;
+        InputSlot = input_slot;
+        OutputIdx = output_idx;
+        OutputSlot = output_slot;
+    }
+};
+
+class NodeScene
+{
+public:
+    std::vector<Node> m_nodes;
+    std::vector<NodeLink> m_links;
+
+public:
+    NodeScene();
+    ~NodeScene();
 };
 
 } // namespace plugnode

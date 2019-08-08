@@ -1,10 +1,12 @@
 #pragma once
-#include <string>
+#include "nodedefinition.h"
+#include "node.h"
+
+struct lua_State;
 
 namespace plugnode
 {
 
-class NodeDefinition;
 class NodeGraphImpl;
 class NodeGraph
 {
@@ -14,12 +16,10 @@ public:
     NodeGraph();
     ~NodeGraph();
 
-    void ClearDefinitions();
-    NodeDefinition *CreateDefinition(const std::string &name);
-    int GetDefinitionCount() const;
-    NodeDefinition *GetDefinition(int index) const;
-
-    void ShowGui();
+    void ImGui(const NodeDefinitionManager *definitions,
+                NodeScene *scene);
 };
+
+void lua_require_plugnode(lua_State *L);
 
 } // namespace plugnode

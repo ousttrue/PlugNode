@@ -16,25 +16,7 @@ extern "C"
 #include <plugnode.h>
 #include <perilune.h>
 
-namespace perilune
-{
-
-template <>
-struct LuaTable<plugnode::NodeSocket>
-{
-    static plugnode::NodeSocket Get(lua_State *L, int index)
-    {
-        auto table = LuaTableToTuple<std::string, std::string>(L, index);
-        return plugnode::NodeSocket{
-            std::get<0>(table),
-            std::get<1>(table),
-        };
-    }
-};
-
-} // namespace perilune
-
-void lua_require_plugnode(lua_State *L)
+void lua_require_app(lua_State *L)
 {
     auto top = lua_gettop(L);
     lua_newtable(L);
@@ -98,53 +80,6 @@ void lua_require_plugnode(lua_State *L)
         .LuaNewType(L);
     lua_setfield(L, -2, "gui");
 
-    static perilune::UserType<plugnode::NodeGraph *> nodegraph;
-    nodegraph
-        .StaticMethod("new", []() { return new plugnode::NodeGraph; })
-        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeGraph *p) { delete p; })
-        .MetaIndexDispatcher([](auto d) {
-            d->Method("create_definition", [](plugnode::NodeGraph *p, std::string name) {
-                return p->CreateDefinition(name);
-            });
-            d->Method("get_definition_count", &plugnode::NodeGraph::GetDefinitionCount);
-            d->IndexGetter([](plugnode::NodeGraph *l, int i) {
-                return l->GetDefinition(i - 1);
-            });
-            d->Method("show", &plugnode::NodeGraph::ShowGui);
-        })
-        .LuaNewType(L);
-    lua_setfield(L, -2, "graph");
-
-    static perilune::UserType<plugnode::NodeSocket> nodeSocket;
-    nodeSocket
-        .StaticMethod("new", [](std::string name, std::string type) {
-            return plugnode::NodeSocket{name, type};
-        })
-        .MetaMethod(perilune::MetaKey::__tostring, [](plugnode::NodeSocket *socket) {
-            std::stringstream ss;
-            ss << "[" << socket->type << "]" << socket->name;
-            return ss.str();
-        })
-        .LuaNewType(L);
-    lua_setfield(L, -2, "node_socket");
-
-    static perilune::UserType<std::vector<plugnode::NodeSocket> *>
-        stringList;
-    perilune::AddDefaultMethods(stringList);
-    stringList
-        .LuaNewType(L);
-    lua_setfield(L, -2, "string_list");
-
-    static perilune::UserType<plugnode::NodeDefinition *> nodeDefinition;
-    nodeDefinition
-        .MetaIndexDispatcher([](auto d) {
-            d->Getter("name", &plugnode::NodeDefinition::Name);
-            d->Getter("inputs", [](plugnode::NodeDefinition *p) { return &p->Inputs; });
-            d->Getter("outputs", [](plugnode::NodeDefinition *p) { return &p->Outputs; });
-        })
-        .LuaNewType(L);
-    lua_setfield(L, -2, "node_definition");
-
-    lua_setglobal(L, "plugnode");
+    lua_setglobal(L, "app");
     assert(top == lua_gettop(L));
 }

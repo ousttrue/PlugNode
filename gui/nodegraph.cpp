@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <plog/Log.h>
 #include <vector>
+#include <perilune.h>
 
 // Creating a node graph editor for ImGui
 // Quick demo, not production code! This is more of a demo of how to use ImGui to create custom stuff.
@@ -21,71 +22,46 @@ const float MAX_SCALING = 2.0f;
 namespace plugnode
 {
 
-struct NodeLink
-{
-    int InputIdx, InputSlot, OutputIdx, OutputSlot;
-
-    NodeLink(int input_idx, int input_slot, int output_idx, int output_slot)
-    {
-        InputIdx = input_idx;
-        InputSlot = input_slot;
-        OutputIdx = output_idx;
-        OutputSlot = output_slot;
-    }
-};
-
 class NodeGraphImpl
 {
-    std::vector<Node> m_nodes;
-    std::vector<NodeLink> m_links;
     ImVec2 m_scrolling = ImVec2(0.0f, 0.0f);
     float m_scaling = 1.0f;
     bool m_show_grid = true;
     int m_node_selected = -1;
 
-    std::vector<NodeDefinition *> m_definitions;
+    bool m_show = true;
 
 public:
     NodeGraphImpl()
     {
-        m_nodes.push_back(Node(0, "MainTex", std::array<float, 2>{40, 50}, 0.5f, ImColor(255, 100, 100), 1, 1));
-        m_nodes.push_back(Node(1, "BumpMap", std::array<float, 2>{40, 150}, 0.42f, ImColor(200, 100, 200), 1, 1));
-        m_nodes.push_back(Node(2, "Combine", std::array<float, 2>{270, 80}, 1.0f, ImColor(0, 200, 100), 2, 2));
-        m_links.push_back(NodeLink(0, 0, 2, 0));
-        m_links.push_back(NodeLink(1, 0, 2, 1));
     }
 
-#pragma region Definitions
-    void ClearDefinitions()
+    void Show(const NodeDefinitionManager *definitions, NodeScene *scene)
     {
-        m_definitions.clear();
+        // ImGui::SetNextWindowSize(ImVec2(700, 600), ImGuiSetCond_FirstUseEver);
+        if (ImGui::Begin("Example: Custom Node Graph", &m_show))
+        {
+            Context context;
+
+            ShowLeftPanel(&context, definitions, scene);
+
+            ImGui::SameLine();
+            ImGui::BeginGroup();
+            ShowRightPanel(&context, definitions, scene);
+            ImGui::EndGroup();
+        }
+        ImGui::End();
     }
 
-    void AddDefinition(NodeDefinition *node)
-    {
-        m_definitions.push_back(node);
-    }
-
-    int GetDefinitionCount() const { return static_cast<int>(m_nodes.size()); }
-
-    NodeDefinition *GetDefinition(int index) const
-    {
-        if (index < 0)
-            return nullptr;
-        if (index >= GetDefinitionCount())
-            return nullptr;
-        return m_definitions[index];
-    }
-#pragma endregion
-
-    void ShowLeftPanel(Context *context)
+private:
+    void ShowLeftPanel(Context *context, const NodeDefinitionManager *definitions, NodeScene *scene)
     {
         // Draw a list of nodes on the left side
         ImGui::BeginChild("node_list", ImVec2(100, 0));
         ImGui::Text("Nodes");
         ImGui::Separator();
 
-        for (auto &node : m_nodes)
+        for (auto &node : scene->m_nodes)
         {
             node.DrawLeftPanel(&m_node_selected, context);
         }
@@ -109,7 +85,8 @@ public:
         }
     }
 
-    void ContextMenu(Context *context, const ImVec2 &offset)
+    void ContextMenu(Context *context, const ImVec2 &offset,
+                     const NodeDefinitionManager *definitions, NodeScene *scene)
     {
         if (!ImGui::IsAnyItemHovered() && ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
         {
@@ -129,7 +106,7 @@ public:
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
         if (ImGui::BeginPopup("context_menu"))
         {
-            Node *node = m_node_selected != -1 ? &m_nodes[m_node_selected] : NULL;
+            auto node = m_node_selected != -1 ? &scene->m_nodes[m_node_selected] : NULL;
             ImVec2 scene_pos = ImGui::GetMousePosOnOpeningCurrentPopup() - offset;
             if (node)
             {
@@ -147,18 +124,13 @@ public:
             }
             else
             {
-                // if (ImGui::MenuItem("Add"))
-                // {
-                //     m_nodes.push_back(Node((int)m_nodes.size(), "New node", std::array<float, 2>{scene_pos.x, scene_pos.y}, 0.5f, ImColor(100, 100, 200), 2, 2));
-                // }
-                // if (ImGui::MenuItem("Paste", NULL, false, false))
-                // {
-                // }
-                for (auto p : m_definitions)
+                for (auto p : definitions->m_definitions)
                 {
                     if (ImGui::MenuItem(p->Name.c_str()))
                     {
-                        m_nodes.push_back(Node((int)m_nodes.size(), "New node", std::array<float, 2>{scene_pos.x, scene_pos.y}, 0.5f, ImColor(100, 100, 200), 2, 2));
+                        scene->m_nodes.push_back(Node((int)scene->m_nodes.size(), "New node",
+                                                      std::array<float, 2>{scene_pos.x, scene_pos.y}, 0.5f,
+                                                      ImColor(100, 100, 200), 2, 2));
                     }
                 }
             }
@@ -183,7 +155,7 @@ public:
     ///
     /// Canvas
     ///
-    void ShowRightPanelCanvas(Context *context)
+    void ShowRightPanelCanvas(Context *context, const NodeDefinitionManager *definitions, NodeScene *scene)
     {
         // スクロールを加味したcanvasの原点
         ImVec2 offset = ImGui::GetCursorScreenPos() + m_scrolling;
@@ -200,17 +172,17 @@ public:
             draw_list->ChannelsSplit(2);
             draw_list->ChannelsSetCurrent(0); // Background
             // Display links
-            for (auto &link : m_links)
+            for (auto &link : scene->m_links)
             {
-                Node *node_inp = &m_nodes[link.InputIdx];
-                Node *node_out = &m_nodes[link.OutputIdx];
+                Node *node_inp = &scene->m_nodes[link.InputIdx];
+                Node *node_out = &scene->m_nodes[link.OutputIdx];
                 ImVec2 p1 = offset + node_inp->GetOutputSlotPos(link.InputSlot, m_scaling);
                 ImVec2 p2 = offset + node_out->GetInputSlotPos(link.OutputSlot, m_scaling);
                 draw_list->AddBezierCurve(p1, p1 + ImVec2(+50, 0), p2 + ImVec2(-50, 0), p2, IM_COL32(200, 200, 100, 255), 3.0f * m_scaling);
             }
 
             // Display nodes
-            for (auto &node : m_nodes)
+            for (auto &node : scene->m_nodes)
             {
                 // move, draw
                 node.Process(draw_list, offset, context, &m_node_selected, m_scaling);
@@ -219,7 +191,7 @@ public:
         }
 
         // Open context menu
-        ContextMenu(context, offset);
+        ContextMenu(context, offset, definitions, scene);
 
         // Scrolling
         if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive())
@@ -243,7 +215,7 @@ public:
         }
     }
 
-    void ShowRightPanel(Context *context)
+    void ShowRightPanel(Context *context, const NodeDefinitionManager *definitions, NodeScene *scene)
     {
         ShowRightPanelHeader();
 
@@ -257,7 +229,7 @@ public:
         auto backup = ImGui::GetStyle();
         ImGui::GetStyle().ScaleAllSizes(m_scaling);
         ImGui::SetWindowFontScale(m_scaling);
-        ShowRightPanelCanvas(context);
+        ShowRightPanelCanvas(context, definitions, scene);
         ImGui::SetWindowFontScale(1.0f);
         ImGui::GetStyle() = backup;
 
@@ -265,24 +237,6 @@ public:
         ImGui::EndChild();
         ImGui::PopStyleColor();
         ImGui::PopStyleVar(2);
-    }
-
-    bool m_show = true;
-    void Show()
-    {
-        // ImGui::SetNextWindowSize(ImVec2(700, 600), ImGuiSetCond_FirstUseEver);
-        if (ImGui::Begin("Example: Custom Node Graph", &m_show))
-        {
-            Context context;
-
-            ShowLeftPanel(&context);
-
-            ImGui::SameLine();
-            ImGui::BeginGroup();
-            ShowRightPanel(&context);
-            ImGui::EndGroup();
-        }
-        ImGui::End();
     }
 };
 
@@ -296,30 +250,104 @@ NodeGraph::~NodeGraph()
     delete m_impl;
 }
 
-#pragma region Definitions
-void NodeGraph::ClearDefinitions()
+void NodeGraph::ImGui(const NodeDefinitionManager *definitions,
+                      NodeScene *scene)
 {
-    m_impl->ClearDefinitions();
+    m_impl->Show(definitions, scene);
 }
 
-NodeDefinition *NodeGraph::CreateDefinition(const std::string &name)
+void lua_require_plugnode(lua_State *L)
 {
-    auto node = new NodeDefinition(name);
-    m_impl->AddDefinition(node);
-    return node;
-}
+    auto top = lua_gettop(L);
+    lua_newtable(L);
 
-int NodeGraph::GetDefinitionCount() const { return m_impl->GetDefinitionCount(); }
+#pragma region definitions
+    static perilune::UserType<plugnode::NodeSocket> nodeSocket;
+    nodeSocket
+        .StaticMethod("new", [](std::string name, std::string type) {
+            return plugnode::NodeSocket{name, type};
+        })
+        .MetaMethod(perilune::MetaKey::__tostring, [](plugnode::NodeSocket *socket) {
+            std::stringstream ss;
+            ss << "[" << socket->type << "]" << socket->name;
+            return ss.str();
+        })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "node_socket");
 
-NodeDefinition *NodeGraph::GetDefinition(int index) const
-{
-    return m_impl->GetDefinition(index);
-}
+    static perilune::UserType<std::vector<plugnode::NodeSocket> *>
+        stringList;
+    perilune::AddDefaultMethods(stringList);
+    stringList
+        .LuaNewType(L);
+    lua_setfield(L, -2, "string_list");
+
+    static perilune::UserType<plugnode::NodeDefinition *> nodeDefinition;
+    nodeDefinition
+        .MetaIndexDispatcher([](auto d) {
+            d->Getter("name", &plugnode::NodeDefinition::Name);
+            d->Getter("inputs", [](plugnode::NodeDefinition *p) { return &p->Inputs; });
+            d->Getter("outputs", [](plugnode::NodeDefinition *p) { return &p->Outputs; });
+        })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "definition");
+
+    static perilune::UserType<plugnode::NodeDefinitionManager *> definitions;
+    definitions
+        .StaticMethod("new", []() { return new plugnode::NodeDefinitionManager; })
+        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeDefinitionManager *p) { delete p; })
+        .MetaIndexDispatcher([](auto d) {
+            d->Method("create", [](plugnode::NodeDefinitionManager *p, std::string name) {
+                return p->Create(name);
+            });
+            d->Method("get_count", &plugnode::NodeDefinitionManager::GetCount);
+            d->IndexGetter([](plugnode::NodeDefinitionManager *l, int i) {
+                return l->Get(i - 1);
+            });
+        })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "definition_manager");
 #pragma endregion
 
-void NodeGraph::ShowGui()
-{
-    m_impl->Show();
+#pragma region scene
+    static perilune::UserType<plugnode::NodeScene *> nodescene;
+    nodescene
+        .StaticMethod("new", []() { return new plugnode::NodeScene; })
+        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeScene *p) { delete p; })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "scene");
+#pragma endregion
+
+    static perilune::UserType<plugnode::NodeGraph *> nodegraph;
+    nodegraph
+        .StaticMethod("new", []() { return new plugnode::NodeGraph; })
+        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeGraph *p) { delete p; })
+        .MetaIndexDispatcher([](auto d) {
+            d->Method("imgui", &plugnode::NodeGraph::ImGui);
+        })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "graph");
+
+    lua_setglobal(L, "plugnode");
+    assert(top == lua_gettop(L));
 }
 
 } // namespace plugnode
+
+namespace perilune
+{
+
+template <>
+struct LuaTable<plugnode::NodeSocket>
+{
+    static plugnode::NodeSocket Get(lua_State *L, int index)
+    {
+        auto table = LuaTableToTuple<std::string, std::string>(L, index);
+        return plugnode::NodeSocket{
+            std::get<0>(table),
+            std::get<1>(table),
+        };
+    }
+};
+
+} // namespace perilune

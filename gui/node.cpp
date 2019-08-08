@@ -27,7 +27,7 @@ ImColor Node::GetBGColor(const Context &context, int node_selected) const
     }
 }
 
-void Node::DrawLeftPanel(int *node_selected, Context *context)
+void Node::DrawLeftPanel(int *node_selected, Context *context) const
 {
     ImGui::PushID(m_id);
     if (ImGui::Selectable(m_name.c_str(), m_id == *node_selected))
@@ -108,4 +108,16 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImGui::PopID();
 }
 
-} // namespace edon
+NodeScene::NodeScene()
+{
+    m_nodes.push_back(Node(0, "MainTex", std::array<float, 2>{40, 50}, 0.5f, ImColor(255, 100, 100), 1, 1));
+    m_nodes.push_back(Node(1, "BumpMap", std::array<float, 2>{40, 150}, 0.42f, ImColor(200, 100, 200), 1, 1));
+    m_nodes.push_back(Node(2, "Combine", std::array<float, 2>{270, 80}, 1.0f, ImColor(0, 200, 100), 2, 2));
+    m_links.push_back(NodeLink(0, 0, 2, 0));
+    m_links.push_back(NodeLink(1, 0, 2, 1));
+}
+
+NodeScene::~NodeScene()
+{}
+
+} // namespace plugnode
