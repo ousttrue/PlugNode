@@ -14,7 +14,7 @@ extern "C"
 #include "gui.h"
 #include "nodegraph.h"
 #include <plugnode.h>
-#include <perilune.h>
+#include <perilune/perilune.h>
 
 void lua_require_app(lua_State *L)
 {

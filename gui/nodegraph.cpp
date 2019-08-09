@@ -5,7 +5,7 @@
 #include <imgui.h>
 #include <plog/Log.h>
 #include <vector>
-#include <perilune.h>
+#include <perilune/perilune.h>
 
 // Creating a node graph editor for ImGui
 // Quick demo, not production code! This is more of a demo of how to use ImGui to create custom stuff.
