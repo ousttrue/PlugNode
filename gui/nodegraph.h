@@ -16,8 +16,8 @@ public:
     NodeGraph();
     ~NodeGraph();
 
-    void ImGui(const NodeDefinitionManager *definitions,
-                NodeScene *scene);
+    void ImGui(NodeDefinitionManager *definitions,
+               NodeScene *scene);
 };
 
 void lua_require_plugnode(lua_State *L);

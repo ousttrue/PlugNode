@@ -248,7 +248,7 @@ NodeGraph::~NodeGraph()
     delete m_impl;
 }
 
-void NodeGraph::ImGui(const NodeDefinitionManager *definitions,
+void NodeGraph::ImGui(NodeDefinitionManager *definitions,
                       NodeScene *scene)
 {
     m_impl->Show(definitions, scene);
@@ -292,8 +292,7 @@ void lua_require_plugnode(lua_State *L)
 
     static perilune::UserType<plugnode::NodeDefinitionManager *> definitions;
     definitions
-        .StaticMethod("new", []() { return new plugnode::NodeDefinitionManager; })
-        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeDefinitionManager *p) { delete p; })
+        .DefaultConstructorAndDestructor()
         .MetaIndexDispatcher([](auto d) {
             d->Method("create", [](plugnode::NodeDefinitionManager *p, std::string name) {
                 return p->Create(name);
@@ -310,16 +309,14 @@ void lua_require_plugnode(lua_State *L)
 #pragma region scene
     static perilune::UserType<plugnode::NodeScene *> nodescene;
     nodescene
-        .StaticMethod("new", []() { return new plugnode::NodeScene; })
-        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeScene *p) { delete p; })
+        .DefaultConstructorAndDestructor()
         .LuaNewType(L);
     lua_setfield(L, -2, "scene");
 #pragma endregion
 
     static perilune::UserType<plugnode::NodeGraph *> nodegraph;
     nodegraph
-        .StaticMethod("new", []() { return new plugnode::NodeGraph; })
-        .MetaMethod(perilune::MetaKey::__gc, [](plugnode::NodeGraph *p) { delete p; })
+        .DefaultConstructorAndDestructor()
         .MetaIndexDispatcher([](auto d) {
             d->Method("imgui", &plugnode::NodeGraph::ImGui);
         })
