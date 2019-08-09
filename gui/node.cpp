@@ -124,7 +124,7 @@ NodeScene::~NodeScene()
 {
 }
 
-void NodeScene::CreateNode(const NodeDefinition *definition, float x, float y)
+void NodeScene::CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y)
 {
     m_nodes.push_back(std::make_unique<Node>(definition->Name,
                                              std::array<float, 2>{x, y},

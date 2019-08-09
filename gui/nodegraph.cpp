@@ -280,7 +280,7 @@ void lua_require_plugnode(lua_State *L)
         .LuaNewType(L);
     lua_setfield(L, -2, "string_list");
 
-    static perilune::UserType<plugnode::NodeDefinition *> nodeDefinition;
+    static perilune::UserType<std::shared_ptr<plugnode::NodeDefinition>> nodeDefinition;
     nodeDefinition
         .MetaIndexDispatcher([](auto d) {
             d->Getter("name", &plugnode::NodeDefinition::Name);

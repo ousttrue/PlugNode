@@ -61,7 +61,7 @@ public:
 public:
     NodeScene();
     ~NodeScene();
-    void CreateNode(const NodeDefinition *definition, float x, float y);
+    void CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y);
 };
 
 } // namespace plugnode

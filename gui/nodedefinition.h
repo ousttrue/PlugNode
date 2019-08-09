@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
 namespace plugnode
 {
@@ -17,6 +18,7 @@ class NodeDefinition
     NodeDefinition(const NodeDefinition &) = delete;
     NodeDefinition &operator=(const NodeDefinition &) = delete;
 
+public:
     NodeDefinition(const std::string &name)
         : Name(name)
     {
@@ -26,7 +28,6 @@ class NodeDefinition
     {
     }
 
-public:
     std::string Name;
     std::vector<NodeSocket> Inputs;
     std::vector<NodeSocket> Outputs;
@@ -37,12 +38,12 @@ public:
 class NodeDefinitionManager
 {
 public:
-    std::vector<NodeDefinition *> m_definitions;
+    std::vector<std::shared_ptr<NodeDefinition>> m_definitions;
 
 public:
-    NodeDefinition *Create(const std::string &name);
+    std::shared_ptr<NodeDefinition> Create(const std::string &name);
     int GetCount() const { return (int)m_definitions.size(); }
-    NodeDefinition *Get(int index)
+    std::shared_ptr<NodeDefinition> Get(int index)
     {
         if (index < 0 || index >= m_definitions.size())
             return nullptr;

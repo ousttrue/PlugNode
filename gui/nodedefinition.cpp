@@ -3,9 +3,9 @@
 namespace plugnode
 {
 
-NodeDefinition *NodeDefinitionManager::Create(const std::string &name)
+std::shared_ptr<NodeDefinition> NodeDefinitionManager::Create(const std::string &name)
 {
-    auto node = new NodeDefinition(name);
+    auto node = std::make_shared<NodeDefinition>(name);
     m_definitions.push_back(node);
     return node;
 }
