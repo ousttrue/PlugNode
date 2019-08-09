@@ -5,6 +5,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <memory>
 
 namespace plugnode
 {
@@ -46,15 +47,17 @@ struct NodeLink
     }
 };
 
+class NodeDefinition;
 class NodeScene
 {
 public:
-    std::vector<Node> m_nodes;
+    std::vector<std::unique_ptr<Node>> m_nodes;
     std::vector<NodeLink> m_links;
 
 public:
     NodeScene();
     ~NodeScene();
+    void CreateNode(const NodeDefinition *definition, float x, float y);
 };
 
 } // namespace plugnode
