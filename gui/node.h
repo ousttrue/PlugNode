@@ -52,7 +52,7 @@ class NodeScene
 {
 public:
     std::vector<std::unique_ptr<Node>> m_nodes;
-    std::vector<NodeLink> m_links;
+    std::vector<std::unique_ptr<NodeLink>> m_links;
 
 public:
     NodeScene();

@@ -114,8 +114,8 @@ NodeScene::NodeScene()
     m_nodes.push_back(std::make_unique<Node>(0, "MainTex", std::array<float, 2>{40, 50}, 0.5f, ImColor(255, 100, 100), 1, 1));
     m_nodes.push_back(std::make_unique<Node>(1, "BumpMap", std::array<float, 2>{40, 150}, 0.42f, ImColor(200, 100, 200), 1, 1));
     m_nodes.push_back(std::make_unique<Node>(2, "Combine", std::array<float, 2>{270, 80}, 1.0f, ImColor(0, 200, 100), 2, 2));
-    m_links.push_back(NodeLink(0, 0, 2, 0));
-    m_links.push_back(NodeLink(1, 0, 2, 1));
+    m_links.push_back(std::make_unique<NodeLink>(0, 0, 2, 0));
+    m_links.push_back(std::make_unique<NodeLink>(1, 0, 2, 1));
 }
 
 NodeScene::~NodeScene()

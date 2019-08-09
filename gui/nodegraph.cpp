@@ -172,10 +172,10 @@ private:
             // Display links
             for (auto &link : scene->m_links)
             {
-                auto &node_inp = scene->m_nodes[link.InputIdx];
-                auto &node_out = scene->m_nodes[link.OutputIdx];
-                ImVec2 p1 = offset + node_inp->GetOutputSlotPos(link.InputSlot, m_scaling);
-                ImVec2 p2 = offset + node_out->GetInputSlotPos(link.OutputSlot, m_scaling);
+                auto &node_inp = scene->m_nodes[link->InputIdx];
+                auto &node_out = scene->m_nodes[link->OutputIdx];
+                ImVec2 p1 = offset + node_inp->GetOutputSlotPos(link->InputSlot, m_scaling);
+                ImVec2 p2 = offset + node_out->GetInputSlotPos(link->OutputSlot, m_scaling);
                 draw_list->AddBezierCurve(p1, p1 + ImVec2(+50, 0), p2 + ImVec2(-50, 0), p2, IM_COL32(200, 200, 100, 255), 3.0f * m_scaling);
             }
 
