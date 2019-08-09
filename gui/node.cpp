@@ -5,10 +5,12 @@
 const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
 const float NODE_SLOT_RADIUS = 4.0f;
 
+static int g_nodeId = 1;
+
 namespace plugnode
 {
-Node::Node(int id, const char *name, const std::array<float, 2> &pos, float value, const ImVec4 &color, int inputs_count, int outputs_count)
-    : m_id(id), m_name(name), m_pos(pos)
+Node::Node(const std::string &name, const std::array<float, 2> &pos, float value, const ImVec4 &color, int inputs_count, int outputs_count)
+    : m_id(g_nodeId++), m_name(name), m_pos(pos)
 {
     Value = value;
     Color = color;
@@ -111,9 +113,9 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
 
 NodeScene::NodeScene()
 {
-    m_nodes.push_back(std::make_unique<Node>(0, "MainTex", std::array<float, 2>{40, 50}, 0.5f, ImColor(255, 100, 100), 1, 1));
-    m_nodes.push_back(std::make_unique<Node>(1, "BumpMap", std::array<float, 2>{40, 150}, 0.42f, ImColor(200, 100, 200), 1, 1));
-    m_nodes.push_back(std::make_unique<Node>(2, "Combine", std::array<float, 2>{270, 80}, 1.0f, ImColor(0, 200, 100), 2, 2));
+    m_nodes.push_back(std::make_unique<Node>("MainTex", std::array<float, 2>{40, 50}, 0.5f, ImColor(255, 100, 100), 1, 1));
+    m_nodes.push_back(std::make_unique<Node>("BumpMap", std::array<float, 2>{40, 150}, 0.42f, ImColor(200, 100, 200), 1, 1));
+    m_nodes.push_back(std::make_unique<Node>("Combine", std::array<float, 2>{270, 80}, 1.0f, ImColor(0, 200, 100), 2, 2));
     m_links.push_back(std::make_unique<NodeLink>(0, 0, 2, 0));
     m_links.push_back(std::make_unique<NodeLink>(1, 0, 2, 1));
 }
@@ -124,7 +126,7 @@ NodeScene::~NodeScene()
 
 void NodeScene::CreateNode(const NodeDefinition *definition, float x, float y)
 {
-    m_nodes.push_back(std::make_unique<Node>((int)m_nodes.size(), "New node",
+    m_nodes.push_back(std::make_unique<Node>(definition->Name,
                                              std::array<float, 2>{x, y}, 0.5f,
                                              ImColor(100, 100, 200), 2, 2));
 }

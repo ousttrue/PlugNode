@@ -22,7 +22,7 @@ struct Node
     ImVec4 Color;
     int InputsCount, OutputsCount;
 
-    Node(int id, const char *name, const std::array<float, 2> &pos, float value, const ImVec4 &color, int inputs_count, int outputs_count);
+    Node(const std::string &name, const std::array<float, 2> &pos, float value, const ImVec4 &color, int inputs_count, int outputs_count);
 
     ImColor GetBGColor(const Context &context, int node_selected) const;
 

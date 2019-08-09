@@ -107,7 +107,7 @@ private:
         if (ImGui::BeginPopup("context_menu"))
         {
             ImVec2 scene_pos = ImGui::GetMousePosOnOpeningCurrentPopup() - offset;
-            if (m_node_selected)
+            if (m_node_selected != -1)
             {
                 auto &node = scene->m_nodes[m_node_selected];
                 ImGui::Text("Node '%s'", node->m_name.c_str());
@@ -129,7 +129,7 @@ private:
                     if (ImGui::MenuItem(p->Name.c_str()))
                     {
                         scene->CreateNode(p, scene_pos[0], scene_pos[1]);
-                   }
+                    }
                 }
             }
             ImGui::EndPopup();
