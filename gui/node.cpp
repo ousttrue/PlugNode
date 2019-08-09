@@ -9,13 +9,9 @@ static int g_nodeId = 1;
 
 namespace plugnode
 {
-Node::Node(const std::string &name, const std::array<float, 2> &pos, int inputs_count, int outputs_count)
-    : m_id(g_nodeId++), m_name(name), m_pos(pos)
+Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos)
+    : m_id(g_nodeId++), m_definition(definition), m_pos(pos)
 {
-    // Value = value;
-    // Color = color;
-    InputsCount = inputs_count;
-    OutputsCount = outputs_count;
 }
 
 ImColor Node::GetBGColor(const Context &context, int node_selected) const
@@ -33,7 +29,7 @@ ImColor Node::GetBGColor(const Context &context, int node_selected) const
 void Node::DrawLeftPanel(int *node_selected, Context *context) const
 {
     ImGui::PushID(m_id);
-    if (ImGui::Selectable(m_name.c_str(), m_id == *node_selected))
+    if (ImGui::Selectable(m_definition->Name.c_str(), m_id == *node_selected))
     {
         *node_selected = m_id;
     }
@@ -47,12 +43,16 @@ void Node::DrawLeftPanel(int *node_selected, Context *context) const
 
 ImVec2 Node::GetInputSlotPos(int slot_no, float scaling) const
 {
-    return ImVec2(m_pos[0] * scaling, m_pos[1] * scaling + m_size[1] * ((float)slot_no + 1) / ((float)InputsCount + 1));
+    auto x = m_pos[0] * scaling;
+    auto y = m_pos[1] * scaling + m_size[1] * ((float)slot_no + 1) / ((float)m_definition->Inputs.size() + 1);
+    return ImVec2(x, y);
 }
 
 ImVec2 Node::GetOutputSlotPos(int slot_no, float scaling) const
 {
-    return ImVec2(m_pos[0] * scaling + m_size[0], m_pos[1] * scaling + m_size[1] * ((float)slot_no + 1) / ((float)OutputsCount + 1));
+    auto x = m_pos[0] * scaling + m_size[0];
+    auto y = m_pos[1] * scaling + m_size[1] * ((float)slot_no + 1) / ((float)m_definition->Outputs.size() + 1);
+    return ImVec2(x, y);
 }
 
 void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, int *node_selected, float scaling)
@@ -66,7 +66,7 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     bool old_any_active = ImGui::IsAnyItemActive();
     ImGui::SetCursorScreenPos(node_rect_min + NODE_WINDOW_PADDING);
     ImGui::BeginGroup(); // Lock horizontal position
-    ImGui::Text("%s", m_name.c_str());
+    ImGui::Text("%s", m_definition->Name.c_str());
     // ImGui::SliderFloat("##value", &Value, 0.0f, 1.0f, "Alpha %.2f");
     // ImGui::ColorEdit3("##color", &Color.x);
     ImGui::EndGroup();
@@ -99,11 +99,11 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImU32 node_bg_color = GetBGColor(*context, *node_selected);
     draw_list->AddRectFilled(node_rect_min, node_rect_max, node_bg_color, 4.0f);
     draw_list->AddRect(node_rect_min, node_rect_max, IM_COL32(100, 100, 100, 255), 4.0f);
-    for (int slot_idx = 0; slot_idx < InputsCount; slot_idx++)
+    for (int slot_idx = 0; slot_idx < m_definition->Inputs.size(); slot_idx++)
     {
         draw_list->AddCircleFilled(offset + GetInputSlotPos(slot_idx, scaling), NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
     }
-    for (int slot_idx = 0; slot_idx < OutputsCount; slot_idx++)
+    for (int slot_idx = 0; slot_idx < m_definition->Outputs.size(); slot_idx++)
     {
         draw_list->AddCircleFilled(offset + GetOutputSlotPos(slot_idx, scaling), NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
     }
@@ -113,22 +113,47 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
 
 NodeScene::NodeScene()
 {
-    m_nodes.push_back(std::make_unique<Node>("MainTex", std::array<float, 2>{40, 50}, 1, 1));
-    m_nodes.push_back(std::make_unique<Node>("BumpMap", std::array<float, 2>{40, 150}, 1, 1));
-    m_nodes.push_back(std::make_unique<Node>("Combine", std::array<float, 2>{270, 80}, 2, 2));
-    m_links.push_back(std::make_unique<NodeLink>(0, 0, 2, 0));
-    m_links.push_back(std::make_unique<NodeLink>(1, 0, 2, 1));
 }
 
 NodeScene::~NodeScene()
 {
 }
 
-void NodeScene::CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y)
+std::shared_ptr<Node> NodeScene::CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y)
 {
-    m_nodes.push_back(std::make_unique<Node>(definition->Name,
-                                             std::array<float, 2>{x, y},
-                                             2, 2));
+    auto node = std::make_shared<Node>(definition, std::array<float, 2>{x, y});
+    m_nodes.push_back(node);
+    return node;
+}
+
+int NodeScene::GetIndex(const std::shared_ptr<Node> &node) const
+{
+    for (int i = 0; i < m_nodes.size(); ++i)
+    {
+        if (m_nodes[i] == node)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+std::shared_ptr<NodeLink> NodeScene::Link(const std::shared_ptr<Node> &src_node, int src_slot,
+                                          const std::shared_ptr<Node> &dst_node, int dst_slot)
+{
+    auto src_index = GetIndex(src_node);
+    if (src_index == -1)
+    {
+        return nullptr;
+    }
+    auto dst_index = GetIndex(dst_node);
+    if (dst_index == -1)
+    {
+        return nullptr;
+    }
+    auto link = std::make_shared<NodeLink>(src_index, src_slot, dst_index, dst_slot);
+    m_links.push_back(link);
+    return link;
 }
 
 } // namespace plugnode

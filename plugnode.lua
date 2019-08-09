@@ -25,21 +25,33 @@ function printNodes(definitions)
 end
 
 local definitions = plugnode.definition_manager.new()
-function createNode(name, inputs, outputs)
+function createDefinition(name, inputs, outputs)
     local node = definitions.create(name)
     for i, p in ipairs(inputs) do node.inputs.push_back(p) end
     for i, p in ipairs(outputs) do node.outputs.push_back(p) end
+    return node
 end
-createNode('value', {}, {{'value', 'float'}})
-createNode('out', {{'value', 'float'}}, {})
-createNode('add', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
-createNode('mul', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
+local def_value = createDefinition('value', {}, {{'value', 'float'}})
+local def_out = createDefinition('out', {{'value', 'float'}}, {})
+local def_add = createDefinition('add', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
+local def_mul = createDefinition('mul', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
 printNodes(definitions)
 
 ------------------------------------------------------------------------------
 -- node scene
 ------------------------------------------------------------------------------
 local scene = plugnode.scene.new()
+function createNode(definition, position)
+    return scene.create(definition, position[1], position[2])
+end
+function createLink(src_node, src_slot, dst_node, dst_slot)
+    scene.link(src_node, src_slot, dst_node, dst_slot)
+end
+local node_value1 = createNode(def_value, {40, 50})
+local node_value2 = createNode(def_value, {40, 150})
+local node_add = createNode(def_add, {270, 80})
+createLink(node_value1, 1, node_add, 1)
+createLink(node_value2, 1, node_add, 2)
 
 ------------------------------------------------------------------------------
 -- gui

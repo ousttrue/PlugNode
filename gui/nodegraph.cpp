@@ -110,7 +110,7 @@ private:
             if (m_node_selected != -1)
             {
                 auto &node = scene->m_nodes[m_node_selected];
-                ImGui::Text("Node '%s'", node->m_name.c_str());
+                ImGui::Text("Node '%s'", node->m_definition->Name.c_str());
                 ImGui::Separator();
                 if (ImGui::MenuItem("Rename..", NULL, false, false))
                 {
@@ -307,9 +307,29 @@ void lua_require_plugnode(lua_State *L)
 #pragma endregion
 
 #pragma region scene
+    static perilune::UserType<std::shared_ptr<plugnode::Node>> node;
+    node
+        .LuaNewType(L);
+    lua_setfield(L, -2, "node");
+
+    static perilune::UserType<std::shared_ptr<plugnode::NodeLink>> link;
+    link
+        .LuaNewType(L);
+    lua_setfield(L, -2, "link");
+
     static perilune::UserType<plugnode::NodeScene *> nodescene;
     nodescene
         .DefaultConstructorAndDestructor()
+        .MetaIndexDispatcher([](auto d) {
+            d->Method("create", [](plugnode::NodeScene *p, const std::shared_ptr<NodeDefinition> &def, float x, float y) {
+                return p->CreateNode(def, x, y);
+            });
+            d->Method("link", [](plugnode::NodeScene *p,
+                                 const std::shared_ptr<plugnode::Node> &src, int src_slot,
+                                 const std::shared_ptr<plugnode::Node> &dst, int dst_slot) {
+                return p->Link(src, src_slot - 1, dst, dst_slot - 1);
+            });
+        })
         .LuaNewType(L);
     lua_setfield(L, -2, "scene");
 #pragma endregion

@@ -11,19 +11,15 @@ namespace plugnode
 {
 
 struct Context;
+class NodeDefinition;
 struct Node
 {
     int m_id;
-    std::string m_name;
+    std::shared_ptr<NodeDefinition> m_definition;
     std::array<float, 2> m_pos;
     std::array<float, 2> m_size;
 
-    // float Value;
-    // ImVec4 Color;
-    int InputsCount;
-    int OutputsCount;
-
-    Node(const std::string &name, const std::array<float, 2> &pos, int inputs_count, int outputs_count);
+    Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos);
 
     ImColor GetBGColor(const Context &context, int node_selected) const;
 
@@ -55,13 +51,16 @@ class NodeDefinition;
 class NodeScene
 {
 public:
-    std::vector<std::unique_ptr<Node>> m_nodes;
-    std::vector<std::unique_ptr<NodeLink>> m_links;
+    std::vector<std::shared_ptr<Node>> m_nodes;
+    std::vector<std::shared_ptr<NodeLink>> m_links;
 
 public:
     NodeScene();
     ~NodeScene();
-    void CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y);
+    int GetIndex(const std::shared_ptr<Node> &node) const;
+    std::shared_ptr<Node> CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y);
+    std::shared_ptr<NodeLink> Link(const std::shared_ptr<Node> &src_node, int src_slot,
+                                   const std::shared_ptr<Node> &dst_node, int dst_slot);
 };
 
 } // namespace plugnode
