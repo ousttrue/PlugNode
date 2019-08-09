@@ -9,11 +9,11 @@ static int g_nodeId = 1;
 
 namespace plugnode
 {
-Node::Node(const std::string &name, const std::array<float, 2> &pos, float value, const ImVec4 &color, int inputs_count, int outputs_count)
+Node::Node(const std::string &name, const std::array<float, 2> &pos, int inputs_count, int outputs_count)
     : m_id(g_nodeId++), m_name(name), m_pos(pos)
 {
-    Value = value;
-    Color = color;
+    // Value = value;
+    // Color = color;
     InputsCount = inputs_count;
     OutputsCount = outputs_count;
 }
@@ -67,8 +67,8 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImGui::SetCursorScreenPos(node_rect_min + NODE_WINDOW_PADDING);
     ImGui::BeginGroup(); // Lock horizontal position
     ImGui::Text("%s", m_name.c_str());
-    ImGui::SliderFloat("##value", &Value, 0.0f, 1.0f, "Alpha %.2f");
-    ImGui::ColorEdit3("##color", &Color.x);
+    // ImGui::SliderFloat("##value", &Value, 0.0f, 1.0f, "Alpha %.2f");
+    // ImGui::ColorEdit3("##color", &Color.x);
     ImGui::EndGroup();
 
     // Save the size of what we have emitted and whether any of the widgets are being used
@@ -113,9 +113,9 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
 
 NodeScene::NodeScene()
 {
-    m_nodes.push_back(std::make_unique<Node>("MainTex", std::array<float, 2>{40, 50}, 0.5f, ImColor(255, 100, 100), 1, 1));
-    m_nodes.push_back(std::make_unique<Node>("BumpMap", std::array<float, 2>{40, 150}, 0.42f, ImColor(200, 100, 200), 1, 1));
-    m_nodes.push_back(std::make_unique<Node>("Combine", std::array<float, 2>{270, 80}, 1.0f, ImColor(0, 200, 100), 2, 2));
+    m_nodes.push_back(std::make_unique<Node>("MainTex", std::array<float, 2>{40, 50}, 1, 1));
+    m_nodes.push_back(std::make_unique<Node>("BumpMap", std::array<float, 2>{40, 150}, 1, 1));
+    m_nodes.push_back(std::make_unique<Node>("Combine", std::array<float, 2>{270, 80}, 2, 2));
     m_links.push_back(std::make_unique<NodeLink>(0, 0, 2, 0));
     m_links.push_back(std::make_unique<NodeLink>(1, 0, 2, 1));
 }
@@ -127,8 +127,8 @@ NodeScene::~NodeScene()
 void NodeScene::CreateNode(const NodeDefinition *definition, float x, float y)
 {
     m_nodes.push_back(std::make_unique<Node>(definition->Name,
-                                             std::array<float, 2>{x, y}, 0.5f,
-                                             ImColor(100, 100, 200), 2, 2));
+                                             std::array<float, 2>{x, y},
+                                             2, 2));
 }
 
 } // namespace plugnode

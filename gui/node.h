@@ -18,11 +18,12 @@ struct Node
     std::array<float, 2> m_pos;
     std::array<float, 2> m_size;
 
-    float Value;
-    ImVec4 Color;
-    int InputsCount, OutputsCount;
+    // float Value;
+    // ImVec4 Color;
+    int InputsCount;
+    int OutputsCount;
 
-    Node(const std::string &name, const std::array<float, 2> &pos, float value, const ImVec4 &color, int inputs_count, int outputs_count);
+    Node(const std::string &name, const std::array<float, 2> &pos, int inputs_count, int outputs_count);
 
     ImColor GetBGColor(const Context &context, int node_selected) const;
 
@@ -36,7 +37,10 @@ struct Node
 
 struct NodeLink
 {
-    int InputIdx, InputSlot, OutputIdx, OutputSlot;
+    int InputIdx;
+    int InputSlot;
+    int OutputIdx;
+    int OutputSlot;
 
     NodeLink(int input_idx, int input_slot, int output_idx, int output_slot)
     {
