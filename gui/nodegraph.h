@@ -20,6 +20,4 @@ public:
                NodeScene *scene);
 };
 
-void lua_require_plugnode(lua_State *L);
-
 } // namespace plugnode

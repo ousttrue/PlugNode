@@ -22,7 +22,7 @@ extern "C"
 }
 
 #include "lua_plugnode.h"
-#include "nodegraph.h"
+#include "plugnode.h"
 
 #if !defined(LUA_PROMPT)
 #define LUA_PROMPT "> "
@@ -639,7 +639,7 @@ int main(int argc, char **argv)
     }
 
     lua_require_app(L);
-    plugnode::lua_require_plugnode(L);
+    lua_require_plugnode(L);
 
     lua_pushcfunction(L, &pmain);   /* to call 'pmain' in protected mode */
     lua_pushinteger(L, argc);       /* 1st argument */
