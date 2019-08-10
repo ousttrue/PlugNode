@@ -24,24 +24,12 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
     }
 }
 
-ImColor Node::GetBGColor(const Context &context, int node_selected) const
-{
-    if (context.IsHovered(m_id) || (context.node_hovered_in_list == -1 && node_selected == m_id))
-    {
-        return NODE_HOVER_COLOR;
-    }
-    else
-    {
-        return NODE_COLOR;
-    }
-}
-
-void Node::DrawLeftPanel(int *node_selected, Context *context) const
+void Node::DrawLeftPanel(Context *context) const
 {
     ImGui::PushID(m_id);
-    if (ImGui::Selectable(m_definition->Name.c_str(), m_id == *node_selected))
+    if (ImGui::Selectable(m_definition->Name.c_str(), m_id == context->node_selected))
     {
-        *node_selected = m_id;
+        context->node_selected = m_id;
     }
     if (ImGui::IsItemHovered())
     {
@@ -65,7 +53,7 @@ ImVec2 Node::GetOutputSlotPos(int slot_no, float scaling) const
     return ImVec2(x, y);
 }
 
-void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, int *node_selected, float scaling)
+void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling)
 {
     // Node *node = &nodes[node_idx];
     ImGui::PushID(m_id);
@@ -101,14 +89,16 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     }
     bool node_moving_active = ImGui::IsItemActive();
     if (node_widgets_active || node_moving_active)
-        *node_selected = m_id;
+    {
+        context->node_selected = m_id;
+    }
     if (node_moving_active && ImGui::IsMouseDragging(0))
     {
         m_pos[0] += ImGui::GetIO().MouseDelta[0] / scaling;
         m_pos[1] += ImGui::GetIO().MouseDelta[1] / scaling;
     }
 
-    ImU32 node_bg_color = GetBGColor(*context, *node_selected);
+    ImU32 node_bg_color = context->GetBGColor(m_id);
     draw_list->AddRectFilled(node_rect_min, node_rect_max, node_bg_color, 4.0f);
     draw_list->AddRect(node_rect_min, node_rect_max, IM_COL32(100, 100, 100, 255), 4.0f);
     for (int slot_idx = 0; slot_idx < m_definition->Inputs.size(); slot_idx++)

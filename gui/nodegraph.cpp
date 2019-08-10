@@ -27,9 +27,9 @@ class NodeGraphImpl
     ImVec2 m_scrolling = ImVec2(0.0f, 0.0f);
     float m_scaling = 1.0f;
     bool m_show_grid = true;
-    int m_node_selected = -1;
-
     bool m_show = true;
+
+    Context m_context;
 
 public:
     NodeGraphImpl()
@@ -41,13 +41,13 @@ public:
         // ImGui::SetNextWindowSize(ImVec2(700, 600), ImGuiSetCond_FirstUseEver);
         if (ImGui::Begin("Example: Custom Node Graph", &m_show))
         {
-            Context context;
+            m_context.NewFrame();
 
-            ShowLeftPanel(&context, definitions, scene);
+            ShowLeftPanel(&m_context, definitions, scene);
 
             ImGui::SameLine();
             ImGui::BeginGroup();
-            ShowRightPanel(&context, definitions, scene);
+            ShowRightPanel(&m_context, definitions, scene);
             ImGui::EndGroup();
         }
         ImGui::End();
@@ -63,7 +63,7 @@ private:
 
         for (auto &node : scene->m_nodes)
         {
-            node->DrawLeftPanel(&m_node_selected, context);
+            node->DrawLeftPanel(context);
         }
         ImGui::EndChild();
     }
@@ -90,16 +90,16 @@ private:
     {
         if (!ImGui::IsAnyItemHovered() && ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
         {
-            m_node_selected = context->node_hovered_in_list = context->node_hovered_in_scene = -1;
+            context->node_selected = context->node_hovered_in_list = context->node_hovered_in_scene = -1;
             context->open_context_menu = true;
         }
         if (context->open_context_menu)
         {
             ImGui::OpenPopup("context_menu");
             if (context->node_hovered_in_list != -1)
-                m_node_selected = context->node_hovered_in_list;
+                context->node_selected = context->node_hovered_in_list;
             if (context->node_hovered_in_scene != -1)
-                m_node_selected = context->node_hovered_in_scene;
+                context->node_selected = context->node_hovered_in_scene;
         }
 
         // Draw context menu
@@ -107,9 +107,9 @@ private:
         if (ImGui::BeginPopup("context_menu"))
         {
             ImVec2 scene_pos = ImGui::GetMousePosOnOpeningCurrentPopup() - offset;
-            if (m_node_selected != -1)
+            if (context->node_selected != -1)
             {
-                auto &node = scene->m_nodes[m_node_selected];
+                auto &node = scene->m_nodes[context->node_selected];
                 ImGui::Text("Node '%s'", node->m_definition->Name.c_str());
                 ImGui::Separator();
                 if (ImGui::MenuItem("Rename..", NULL, false, false))
@@ -183,7 +183,7 @@ private:
             for (auto &node : scene->m_nodes)
             {
                 // move, draw
-                node->Process(draw_list, offset, context, &m_node_selected, m_scaling);
+                node->Process(draw_list, offset, context, m_scaling);
             }
             draw_list->ChannelsMerge();
         }

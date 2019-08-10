@@ -25,14 +25,12 @@ struct Node
 
     Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos);
 
-    ImColor GetBGColor(const Context &context, int node_selected) const;
-
-    void DrawLeftPanel(int *node_selected, Context *context) const;
+    void DrawLeftPanel(Context *context) const;
 
     ImVec2 GetInputSlotPos(int slot_no, float scaling) const;
     ImVec2 GetOutputSlotPos(int slot_no, float scaling) const;
 
-    void Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, int *node_selected, float scaling);
+    void Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling);
 };
 
 struct NodeLink
