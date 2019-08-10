@@ -6,10 +6,12 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <any>
 
 namespace plugnode
 {
 
+class IOutSlot;
 struct Context;
 class NodeDefinition;
 struct Node
@@ -18,6 +20,8 @@ struct Node
     std::shared_ptr<NodeDefinition> m_definition;
     std::array<float, 2> m_pos;
     std::array<float, 2> m_size;
+
+    std::vector<std::shared_ptr<IOutSlot>> m_outslots;
 
     Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos);
 

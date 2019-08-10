@@ -1,28 +1,38 @@
 #include "node.h"
 #include "context.h"
 #include "nodedefinition.h"
+#include "nodeslot.h"
+#include <sstream>
 
 const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
 const float NODE_SLOT_RADIUS = 4.0f;
 
 static int g_nodeId = 1;
 
+const ImU32 NODE_COLOR = IM_COL32(60, 60, 60, 255);
+const ImU32 NODE_HOVER_COLOR = IM_COL32(75, 75, 90, 255);
+
 namespace plugnode
 {
 Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos)
     : m_id(g_nodeId++), m_definition(definition), m_pos(pos)
 {
+    for (auto &out : definition->Outputs)
+    {
+        auto p = IOutSlot::Create(out);
+        m_outslots.push_back(p);
+    }
 }
 
 ImColor Node::GetBGColor(const Context &context, int node_selected) const
 {
     if (context.IsHovered(m_id) || (context.node_hovered_in_list == -1 && node_selected == m_id))
     {
-        return IM_COL32(75, 75, 75, 255);
+        return NODE_HOVER_COLOR;
     }
     else
     {
-        return IM_COL32(60, 60, 60, 255);
+        return NODE_COLOR;
     }
 }
 
@@ -67,8 +77,10 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImGui::SetCursorScreenPos(node_rect_min + NODE_WINDOW_PADDING);
     ImGui::BeginGroup(); // Lock horizontal position
     ImGui::Text("%s", m_definition->Name.c_str());
-    // ImGui::SliderFloat("##value", &Value, 0.0f, 1.0f, "Alpha %.2f");
-    // ImGui::ColorEdit3("##color", &Color.x);
+    for (auto &out : m_outslots)
+    {
+        out->ImGui();
+    }
     ImGui::EndGroup();
 
     // Save the size of what we have emitted and whether any of the widgets are being used

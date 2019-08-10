@@ -47,11 +47,13 @@ end
 function createLink(src_node, src_slot, dst_node, dst_slot)
     scene.link(src_node, src_slot, dst_node, dst_slot)
 end
-local node_value1 = createNode(def_value, {40, 50})
-local node_value2 = createNode(def_value, {40, 150})
-local node_add = createNode(def_add, {270, 80})
+local node_value1 = createNode(def_value, {20, 50})
+local node_value2 = createNode(def_value, {20, 150})
+local node_add = createNode(def_add, {220, 70})
+local node_out = createNode(def_out, {420, 90})
 createLink(node_value1, 1, node_add, 1)
 createLink(node_value2, 1, node_add, 2)
+createLink(node_add, 1, node_out, 1)
 
 ------------------------------------------------------------------------------
 -- gui
