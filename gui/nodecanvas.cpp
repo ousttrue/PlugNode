@@ -128,10 +128,13 @@ private:
         // Zoom and Scroll
         if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive())
         {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+
             if (ImGui::IsMouseDragging(2, 0.0f))
             {
                 m_scrolling = m_scrolling + ImGui::GetIO().MouseDelta;
             }
+
             auto io = ImGui::GetIO();
             if (io.MouseWheel > 0)
             {

@@ -93,6 +93,7 @@ public:
         {
             m_state.Mouse.Wheel = 0;
         }
+        m_clearWheel = true;
 
         auto now = timeGetTime();
         if (m_startTime == 0)
@@ -106,7 +107,6 @@ public:
         m_state.ElapsedSeconds = elapsed * 0.001f;
         m_state.DeltaSeconds = delta * 0.001f;
 
-        m_clearWheel = true;
         return m_state;
     }
     WindowState &GetStateInternal()
@@ -228,6 +228,13 @@ static LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
         g_window->SetWheel(GET_WHEEL_DELTA_WPARAM(wParam));
         return 0;
     }
+
+    case WM_SETCURSOR:
+    {
+        auto &state = g_window->GetStateInternal();
+        state.Flags = LOWORD(lParam) == HTCLIENT;
+    }
+    break;
 
     default:
         break;
