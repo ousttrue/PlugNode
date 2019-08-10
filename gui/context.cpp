@@ -1,6 +1,7 @@
 #include "context.h"
 #include "nodedefinition.h"
 #include "node.h"
+#include "nodescene.h"
 
 namespace plugnode
 {

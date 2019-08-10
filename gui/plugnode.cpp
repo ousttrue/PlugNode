@@ -1,6 +1,8 @@
 #include "plugnode.h"
 #include "nodegraph.h"
 #include "nodedefinition.h"
+#include "node.h"
+#include "nodescene.h"
 #include <perilune/perilune.h>
 
 namespace perilune

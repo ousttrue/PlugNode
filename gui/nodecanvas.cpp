@@ -1,11 +1,13 @@
 #include "nodecanvas.h"
 #include "context.h"
 #include "node.h"
+#include "nodescene.h"
 #include <imgui.h>
 #include <math.h>
 
 const float MIN_SCALING = 0.3f;
 const float MAX_SCALING = 2.0f;
+const ImU32 GRID_COLOR = IM_COL32(200, 200, 200, 40);
 
 namespace plugnode
 {
@@ -25,18 +27,20 @@ public:
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, IM_COL32(60, 60, 70, 200));
-        ImGui::BeginChild("scrolling_region", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
-        ImGui::PushItemWidth(120.0f * m_scaling);
+        {
+            ImGui::BeginChild("scrolling_region", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
+            ImGui::PushItemWidth(120.0f * m_scaling);
 
-        auto backup = ImGui::GetStyle();
-        ImGui::GetStyle().ScaleAllSizes(m_scaling);
-        ImGui::SetWindowFontScale(m_scaling);
-        ShowCanvas(context, definitions, scene);
-        ImGui::SetWindowFontScale(1.0f);
-        ImGui::GetStyle() = backup;
+            auto backup = ImGui::GetStyle();
+            ImGui::GetStyle().ScaleAllSizes(m_scaling);
+            ImGui::SetWindowFontScale(m_scaling);
+            ShowCanvas(context, definitions, scene);
+            ImGui::SetWindowFontScale(1.0f);
+            ImGui::GetStyle() = backup;
 
-        ImGui::PopItemWidth();
-        ImGui::EndChild();
+            ImGui::PopItemWidth();
+            ImGui::EndChild();
+        }
         ImGui::PopStyleColor();
         ImGui::PopStyleVar(2);
     }
@@ -54,13 +58,11 @@ private:
         ImGui::SliderFloat("zoom", &m_scaling, MIN_SCALING, MAX_SCALING, "%0.2f");
     }
 
-    void DrawGrid(ImDrawList *draw_list, const ImVec2 &_scrolling)
+    void DrawGrid(ImDrawList *draw_list, const ImVec2 &scrolling)
     {
-        ImU32 GRID_COLOR = IM_COL32(200, 200, 200, 40);
         float GRID_SZ = 64.0f * m_scaling;
         ImVec2 win_pos = ImGui::GetCursorScreenPos();
         ImVec2 canvas_sz = ImGui::GetWindowSize();
-        auto scrolling = _scrolling;
         for (float x = fmodf(scrolling.x, GRID_SZ); x < canvas_sz.x; x += GRID_SZ)
         {
             draw_list->AddLine(ImVec2(x, 0.0f) + win_pos, ImVec2(x, canvas_sz.y) + win_pos, GRID_COLOR);
@@ -89,9 +91,11 @@ private:
 
         {
             draw_list->ChannelsSplit(2);
-            draw_list->ChannelsSetCurrent(0); // Background
+            // 0: Node contents
+            // 1: Others(node rect, link curve...)
 
             // Display links
+            draw_list->ChannelsSetCurrent(0);
             for (auto &link : scene->m_links)
             {
                 auto &node_inp = scene->m_nodes[link->InputIdx];
@@ -113,7 +117,7 @@ private:
         // Open context menu
         context->ContextMenu(offset, definitions, scene);
 
-        // Scrolling
+        // Zoom and Scroll
         if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive())
         {
             if (ImGui::IsMouseDragging(2, 0.0f))
@@ -123,12 +127,10 @@ private:
             auto io = ImGui::GetIO();
             if (io.MouseWheel > 0)
             {
-                //m_scaling *= 1.25f;
                 m_scaling += 0.1f;
             }
             else if (io.MouseWheel < 0)
             {
-                //m_scaling *= 0.8f;
                 m_scaling -= 0.1f;
             }
             m_scaling = std::clamp(m_scaling, MIN_SCALING, MAX_SCALING);

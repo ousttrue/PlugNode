@@ -55,6 +55,8 @@ ImVec2 Node::GetOutputSlotPos(int slot_no, float scaling) const
 void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling)
 {
     ImGui::PushID(m_id);
+
+    // node左上
     ImVec2 node_rect_min = offset + *(ImVec2 *)&m_pos * scaling;
 
     // Display node contents first
@@ -122,61 +124,5 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImGui::PopID();
 }
 
-NodeScene::NodeScene()
-{
-}
-
-NodeScene::~NodeScene()
-{
-}
-
-std::shared_ptr<Node> NodeScene::CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y)
-{
-    auto node = std::make_shared<Node>(definition, std::array<float, 2>{x, y});
-    m_nodes.push_back(node);
-    return node;
-}
-
-std::shared_ptr<Node> NodeScene::GetFromId(int id) const
-{
-    for (auto &node : m_nodes)
-    {
-        if (node->m_id == id)
-        {
-            return node;
-        }
-    }
-    return nullptr;
-}
-
-int NodeScene::GetIndex(const std::shared_ptr<Node> &node) const
-{
-    for (int i = 0; i < m_nodes.size(); ++i)
-    {
-        if (m_nodes[i] == node)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
-std::shared_ptr<NodeLink> NodeScene::Link(const std::shared_ptr<Node> &src_node, int src_slot,
-                                          const std::shared_ptr<Node> &dst_node, int dst_slot)
-{
-    auto src_index = GetIndex(src_node);
-    if (src_index == -1)
-    {
-        return nullptr;
-    }
-    auto dst_index = GetIndex(dst_node);
-    if (dst_index == -1)
-    {
-        return nullptr;
-    }
-    auto link = std::make_shared<NodeLink>(src_index, src_slot, dst_index, dst_slot);
-    m_links.push_back(link);
-    return link;
-}
 
 } // namespace plugnode

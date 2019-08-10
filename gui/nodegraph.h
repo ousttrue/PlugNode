@@ -1,6 +1,4 @@
 #pragma once
-#include "nodedefinition.h"
-#include "node.h"
 
 struct lua_State;
 
@@ -16,8 +14,8 @@ public:
     NodeGraph();
     ~NodeGraph();
 
-    void ImGui(NodeDefinitionManager *definitions,
-               NodeScene *scene);
+    void ImGui(class NodeDefinitionManager *definitions,
+               class NodeScene *scene);
 };
 
 } // namespace plugnode

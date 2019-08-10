@@ -1,6 +1,7 @@
 ﻿#include "nodegraph.h"
 #include "context.h"
 #include "node.h"
+#include "nodescene.h"
 #include "nodecanvas.h"
 #include <imgui.h>
 #include <plog/Log.h>
