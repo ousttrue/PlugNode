@@ -2,8 +2,12 @@
 #include "context.h"
 #include "node.h"
 #include "nodescene.h"
-#include <imgui.h>
+
 #include <math.h>
+
+#include <imgui.h>
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui_internal.h>
 
 const float MIN_SCALING = 0.3f;
 const float MAX_SCALING = 2.0f;
@@ -98,11 +102,17 @@ private:
             draw_list->ChannelsSetCurrent(0);
             for (auto &link : scene->m_links)
             {
-                auto &node_inp = scene->m_nodes[link->InputIdx];
-                auto &node_out = scene->m_nodes[link->OutputIdx];
-                ImVec2 p1 = offset + node_inp->GetOutputSlotPos(link->InputSlot, m_scaling);
-                ImVec2 p2 = offset + node_out->GetInputSlotPos(link->OutputSlot, m_scaling);
-                draw_list->AddBezierCurve(p1, p1 + ImVec2(+50, 0), p2 + ImVec2(-50, 0), p2, IM_COL32(200, 200, 100, 255), 3.0f * m_scaling);
+                auto p1 = offset + *(ImVec2 *)&scene->GetLinkSrc(link, m_scaling);
+
+                auto &dst = scene->GetFromId(link->DstNode);
+                ImVec2 p2 = offset + *(ImVec2 *)&dst->GetInputSlotPos(link->DstSlot, m_scaling);
+
+                draw_list->AddBezierCurve(
+                    p1,
+                    p1 + ImVec2(+50, 0),
+                    p2 + ImVec2(-50, 0),
+                    p2,
+                    IM_COL32(200, 200, 100, 255), 3.0f * m_scaling);
             }
 
             // Display nodes

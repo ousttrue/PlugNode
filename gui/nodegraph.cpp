@@ -3,9 +3,12 @@
 #include "node.h"
 #include "nodescene.h"
 #include "nodecanvas.h"
-#include <imgui.h>
 #include <plog/Log.h>
 #include <vector>
+
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
+#include <imgui_internal.h>
 
 // Creating a node graph editor for ImGui
 // Quick demo, not production code! This is more of a demo of how to use ImGui to create custom stuff.
