@@ -3,50 +3,93 @@
 #include <imgui.h>
 #include <sstream>
 
+const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
+
 namespace plugnode
 {
 
-void FloatValue::ImGui()
+void NodeSlot::ImGui()
 {
     auto pos = ImGui::GetCursorScreenPos();
     Rect[0] = pos.x;
     Rect[1] = pos.y;
-    ImGui::InputFloat(Name.c_str() /*"##value"*/,
-                       &Value
-                       //, Format.c_str()
-    );
-    auto size = ImGui::GetItemRectSize();
-    Rect[2] = size.x;
-    Rect[3] = size.y;
-    // ImGui::ColorEdit3("##color", &Color.x);
+    auto size = OnImGui();
+    Rect[2] = size[0];
+    Rect[3] = size[1];
 }
 
-void FloatSlider::ImGui()
+std::array<float, 2> LabelSlot::OnImGui()
 {
-    auto pos = ImGui::GetCursorScreenPos();
-    Rect[0] = pos.x;
-    Rect[1] = pos.y;
+    ImGui::Text(Name.c_str());
+    return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+}
+
+std::array<float, 2> FloatValue::OnImGui()
+{
+    ImGui::PushItemWidth(80);
+    ImGui::InputFloat(Name.c_str() /*"##value"*/,
+                      &Value
+                      //, Format.c_str()
+    );
+    ImGui::PopItemWidth();
+    return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+}
+
+std::array<float, 2> FloatSlider::OnImGui()
+{
     ImGui::SliderFloat(Name.c_str() /*"##value"*/,
                        &Value, Min, Max
                        //, Format.c_str()
     );
-    auto size = ImGui::GetItemRectSize();
-    Rect[2] = size.x;
-    Rect[3] = size.y;
+    return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
     // ImGui::ColorEdit3("##color", &Color.x);
+}
+
+std::array<float, 2> NodeSlot::GetLinkPosition() const
+{
+    switch (InOut)
+    {
+    case NodeSlotInOut::In:
+        return std::array<float, 2>{
+            Rect[0] - NODE_WINDOW_PADDING.x,
+            Rect[1] + Rect[3] / 2};
+    case NodeSlotInOut::Out:
+        return std::array<float, 2>{
+            Rect[0] + Rect[2] + NODE_WINDOW_PADDING.x,
+            Rect[1] + Rect[3] / 2};
+    }
+
+    throw std::exception("no direction");
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // factory
 //////////////////////////////////////////////////////////////////////////////
-std::shared_ptr<NodeSlot> NodeSlot::CreateIn(const NodeSocket &in)
+std::shared_ptr<NodeSlot> NodeSlot::CreateGui(const NodeSocket &socket, NodeSlotInOut inout)
 {
-    if (in.type == "float")
+    if (socket.type == "float")
     {
-        auto p = new FloatValue;
+        auto p = new FloatSlider(inout);
         std::stringstream ss;
-        ss << in.name << " %.2f";
-        p->Name = in.name;
+        ss << socket.name << " %.2f";
+        p->Name = socket.name;
+        p->Format = ss.str();
+        return std::shared_ptr<NodeSlot>(p);
+    }
+    else
+    {
+        throw std::exception("not implemented");
+    }
+}
+
+std::shared_ptr<NodeSlot> NodeSlot::CreateValue(const NodeSocket &socket, NodeSlotInOut inout)
+{
+    if (socket.type == "float")
+    {
+        auto p = new FloatValue(inout);
+        std::stringstream ss;
+        ss << "##" << socket.name;
+        p->Name = ss.str();
         // p->Format = ss.str();
         return std::shared_ptr<NodeSlot>(p);
     }
@@ -56,21 +99,11 @@ std::shared_ptr<NodeSlot> NodeSlot::CreateIn(const NodeSocket &in)
     }
 }
 
-std::shared_ptr<NodeSlot> NodeSlot::CreateOut(const NodeSocket &out)
+std::shared_ptr<NodeSlot> NodeSlot::CreateLabel(const NodeSocket &socket, NodeSlotInOut inout)
 {
-    if (out.type == "float")
-    {
-        auto p = new FloatSlider;
-        std::stringstream ss;
-        ss << out.name << " %.2f";
-        p->Name = out.name;
-        p->Format = ss.str();
-        return std::shared_ptr<NodeSlot>(p);
-    }
-    else
-    {
-        throw std::exception("not implemented");
-    }
+    auto p = new LabelSlot(inout);
+    p->Name = socket.name;
+    return std::shared_ptr<NodeSlot>(p);
 }
 
 } // namespace plugnode

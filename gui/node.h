@@ -30,7 +30,7 @@ public:
 
     void DrawLeftPanel(Context *context) const;
 
-    std::array<float, 2> GetInputSlotPos(int slot_no, float scaling) const;
+    std::array<float, 2> GetInputSlotPos(int slot_no) const;
     std::array<float, 2> GetOutputSlotPos(int slot_no) const;
 
     void Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling);

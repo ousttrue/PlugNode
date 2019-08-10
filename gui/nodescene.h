@@ -23,6 +23,7 @@ public:
     std::shared_ptr<NodeLink> Link(const std::shared_ptr<Node> &src_node, int src_slot,
                                    const std::shared_ptr<Node> &dst_node, int dst_slot);
     std::array<float, 2> GetLinkSrc(const std::shared_ptr<NodeLink> &link);
+    std::array<float, 2> GetLinkDst(const std::shared_ptr<NodeLink> &link);
 };
 
 } // namespace plugnode

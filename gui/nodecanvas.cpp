@@ -103,9 +103,7 @@ private:
             for (auto &link : scene->m_links)
             {
                 auto p1 = *(ImVec2 *)&scene->GetLinkSrc(link);
-
-                auto &dst = scene->GetFromId(link->DstNode);
-                ImVec2 p2 = offset + *(ImVec2 *)&dst->GetInputSlotPos(link->DstSlot, m_scaling);
+                auto p2 = *(ImVec2 *)&scene->GetLinkDst(link);
 
                 draw_list->AddBezierCurve(
                     p1,

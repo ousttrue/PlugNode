@@ -9,7 +9,7 @@
 #include <imgui_internal.h>
 
 const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
-const float NODE_SLOT_RADIUS = 4.0f;
+const float NODE_SLOT_RADIUS = 6.0f;
 
 static int g_nodeId = 1;
 
@@ -22,15 +22,47 @@ namespace plugnode
 Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos)
     : m_id(g_nodeId++), m_definition(definition), m_pos(pos)
 {
-    for (auto &in : definition->Inputs)
+    if (!definition->Inputs.empty())
     {
-        auto p = NodeSlot::CreateIn(in);
-        m_inslots.push_back(p);
+        if (!definition->Outputs.empty())
+        {
+            // both
+            for (auto &in : definition->Inputs)
+            {
+                auto p = NodeSlot::CreateLabel(in, NodeSlotInOut::In);
+                m_inslots.push_back(p);
+            }
+            for (auto &out : definition->Outputs)
+            {
+                auto p = NodeSlot::CreateValue(out, NodeSlotInOut::Out);
+                m_outslots.push_back(p);
+            }
+        }
+        else
+        {
+            // only input
+            for (auto &in : definition->Inputs)
+            {
+                auto p = NodeSlot::CreateValue(in, NodeSlotInOut::In);
+                m_inslots.push_back(p);
+            }
+        }
     }
-    for (auto &out : definition->Outputs)
+    else
     {
-        auto p = NodeSlot::CreateOut(out);
-        m_outslots.push_back(p);
+        if (!definition->Outputs.empty())
+        {
+            // only output
+            for (auto &out : definition->Outputs)
+            {
+                auto p = NodeSlot::CreateGui(out, NodeSlotInOut::Out);
+                m_outslots.push_back(p);
+            }
+        }
+        else
+        {
+            throw std::exception("no slots");
+        }
     }
 }
 
@@ -53,11 +85,9 @@ void Node::DrawLeftPanel(Context *context) const
     ImGui::PopID();
 }
 
-std::array<float, 2> Node::GetInputSlotPos(int slot_no, float scaling) const
+std::array<float, 2> Node::GetInputSlotPos(int slot_no) const
 {
-    auto x = m_pos[0] * scaling;
-    auto y = m_pos[1] * scaling + m_size[1] * ((float)slot_no + 1) / ((float)m_definition->Inputs.size() + 1);
-    return std::array<float, 2>{x, y};
+    return m_inslots[slot_no]->GetLinkPosition();
 }
 
 std::array<float, 2> Node::GetOutputSlotPos(int slot_no) const
@@ -82,10 +112,48 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     {
         ImGui::BeginGroup(); // Lock horizontal position
         ImGui::Text("%s", m_definition->Name.c_str());
-        for (auto &out : m_outslots)
+
+        if (!m_inslots.empty())
         {
-            out->ImGui();
+            if (!m_outslots.empty())
+            {
+                auto origin = ImGui::GetCursorScreenPos();
+                for (auto &in : m_inslots)
+                {
+                    in->ImGui();
+                }
+
+                ImGui::SetCursorScreenPos(ImVec2(origin.x + m_inslots[0]->Rect[2] + 8, origin.y));
+                ImGui::BeginGroup(); // Lock horizontal position
+                for (auto &out : m_outslots)
+                {
+                    out->ImGui();
+                }
+                ImGui::EndGroup();
+            }
+            else
+            {
+                for (auto &in : m_inslots)
+                {
+                    in->ImGui();
+                }
+            }
         }
+        else
+        {
+            if (!m_outslots.empty())
+            {
+                for (auto &out : m_outslots)
+                {
+                    out->ImGui();
+                }
+            }
+            else
+            {
+                throw std::exception("no slots");
+            }
+        }
+
         ImGui::EndGroup();
     }
 
@@ -124,22 +192,15 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     }
 
     // slots
-    for (int slot_idx = 0; slot_idx < m_definition->Inputs.size(); slot_idx++)
+    for (auto &slot : m_inslots)
     {
-        auto pos = *(ImVec2 *)&GetInputSlotPos(slot_idx, scaling);
-        draw_list->AddCircleFilled(offset + pos, NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
+        auto pos = *(ImVec2 *)&slot->GetLinkPosition();
+        draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
     }
-    // for (int slot_idx = 0; slot_idx < m_definition->Outputs.size(); slot_idx++)
-    // {
-    //     draw_list->AddCircleFilled(offset + GetOutputSlotPos(slot_idx, scaling), NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
-    // }
-
+    for (auto &slot : m_outslots)
     {
-        for (auto &slot : m_outslots)
-        {
-            auto pos = slot->GetLinkPosition();
-            draw_list->AddCircleFilled(ImVec2(pos[0] + NODE_WINDOW_PADDING.x, pos[1]), NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
-        }
+        auto pos = *(ImVec2 *)&slot->GetLinkPosition();
+        draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
     }
 
     ImGui::PopID();

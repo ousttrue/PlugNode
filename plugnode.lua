@@ -33,8 +33,8 @@ function createDefinition(name, inputs, outputs)
 end
 local def_value = createDefinition('value', {}, {{'value', 'float'}})
 local def_out = createDefinition('out', {{'value', 'float'}}, {})
-local def_add = createDefinition('add', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
-local def_mul = createDefinition('mul', {{'lhs', 'float'}, {'lhs', 'float'}}, {{'value', 'float'}})
+local def_add = createDefinition('add', {{'lhs', 'float'}, {'rhs', 'float'}}, {{'value', 'float'}})
+local def_mul = createDefinition('mul', {{'lhs', 'float'}, {'rhs', 'float'}}, {{'value', 'float'}})
 printNodes(definitions)
 
 ------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ while window.is_running() do
         camera.window_input(window_state)
     end
 
-    -- gui.show()
+    gui.show()
     graph.imgui(definitions, scene)
 
     local context = dx11.new_frame(window_state)

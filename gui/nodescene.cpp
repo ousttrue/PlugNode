@@ -68,4 +68,10 @@ std::array<float, 2> NodeScene::GetLinkSrc(const std::shared_ptr<NodeLink> &link
     return src->GetOutputSlotPos(link->SrcSlot);
 }
 
+std::array<float, 2> NodeScene::GetLinkDst(const std::shared_ptr<NodeLink> &link)
+{
+    auto &dst = GetFromId(link->DstNode);
+    return dst->GetInputSlotPos(link->DstSlot);
+}
+
 } // namespace plugnode
