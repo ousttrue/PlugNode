@@ -55,11 +55,9 @@ std::array<float, 2> Node::GetInputSlotPos(int slot_no, float scaling) const
     return std::array<float, 2>{x, y};
 }
 
-std::array<float, 2> Node::GetOutputSlotPos(int slot_no, float scaling) const
+std::array<float, 2> Node::GetOutputSlotPos(int slot_no) const
 {
-    auto x = m_pos[0] * scaling + m_size[0];
-    auto y = m_pos[1] * scaling + m_size[1] * ((float)slot_no + 1) / ((float)m_definition->Outputs.size() + 1);
-    return std::array<float, 2>{x, y};
+    return m_outslots[slot_no]->GetLinkPosition();
 }
 
 void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling)

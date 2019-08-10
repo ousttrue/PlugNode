@@ -102,7 +102,7 @@ private:
             draw_list->ChannelsSetCurrent(0);
             for (auto &link : scene->m_links)
             {
-                auto p1 = offset + *(ImVec2 *)&scene->GetLinkSrc(link, m_scaling);
+                auto p1 = *(ImVec2 *)&scene->GetLinkSrc(link);
 
                 auto &dst = scene->GetFromId(link->DstNode);
                 ImVec2 p2 = offset + *(ImVec2 *)&dst->GetInputSlotPos(link->DstSlot, m_scaling);
