@@ -1,32 +1,61 @@
 #pragma once
+#include <imgui.h>
 
 namespace plugnode
 {
 
-struct Context
+class Context
 {
+    bool m_open_context_menu = false;
+    int m_node_hovered_in_list = -1;
+    int m_node_hovered_in_scene = -1;
+    int m_node_selected = -1;
+
+public:
     ImU32 NODE_COLOR = IM_COL32(60, 60, 60, 255);
     ImU32 NODE_HOVER_COLOR = IM_COL32(75, 75, 90, 255);
 
-    bool open_context_menu = false;
-    int node_hovered_in_list = -1;
-    int node_hovered_in_scene = -1;
-    int node_selected = -1;
 
     void NewFrame()
     {
-        open_context_menu = false;
-        node_hovered_in_list = -1;
-        node_hovered_in_scene = -1;
+        m_open_context_menu = false;
+        m_node_hovered_in_list = -1;
+        m_node_hovered_in_scene = -1;
+    }
+
+    void Select(int id)
+    {
+        m_node_selected = id;
+    }
+
+    void HoverInList(int id)
+    {
+        m_node_hovered_in_list = id;
+        if (ImGui::IsMouseClicked(1))
+        {
+            // right click
+            m_open_context_menu = true;
+        }
+    }
+
+    void HoverInScene(int id)
+    {
+        m_node_hovered_in_scene = id;
+        if (ImGui::IsMouseClicked(1))
+        {
+            // right click
+            m_open_context_menu = true;
+        }
     }
 
     bool IsHovered(int ID) const
     {
-        return node_hovered_in_list == ID || node_hovered_in_scene == ID;
+        return m_node_hovered_in_list == ID || m_node_hovered_in_scene == ID;
     }
+
     bool IsSelected(int ID) const
     {
-        return node_hovered_in_list == -1 && node_selected == ID;
+        return m_node_hovered_in_list == -1 && m_node_selected == ID;
     }
 
     ImU32 GetBGColor(int m_id) const
@@ -40,6 +69,10 @@ struct Context
             return NODE_COLOR;
         }
     }
+
+    void ContextMenu(const ImVec2 &offset,
+                     const class NodeDefinitionManager *definitions,
+                     class NodeScene *scene);
 };
 
 } // namespace plugnode

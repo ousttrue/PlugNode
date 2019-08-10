@@ -27,14 +27,13 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
 void Node::DrawLeftPanel(Context *context) const
 {
     ImGui::PushID(m_id);
-    if (ImGui::Selectable(m_definition->Name.c_str(), m_id == context->node_selected))
+    if (ImGui::Selectable(m_definition->Name.c_str(), context->IsSelected(m_id)))
     {
-        context->node_selected = m_id;
+        context->Select(m_id);
     }
     if (ImGui::IsItemHovered())
     {
-        context->node_hovered_in_list = m_id;
-        (context->open_context_menu) |= ImGui::IsMouseClicked(1);
+        context->HoverInList(m_id);
     }
     ImGui::PopID();
 }
@@ -86,13 +85,12 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImGui::InvisibleButton("node", size);
     if (ImGui::IsItemHovered())
     {
-        context->node_hovered_in_scene = m_id;
-        context->open_context_menu |= ImGui::IsMouseClicked(1);
+        context->HoverInScene(m_id);
     }
     bool node_moving_active = ImGui::IsItemActive();
     if (node_widgets_active || node_moving_active)
     {
-        context->node_selected = m_id;
+        context->Select(m_id);
     }
     if (node_moving_active && ImGui::IsMouseDragging(0))
     {
@@ -137,6 +135,18 @@ std::shared_ptr<Node> NodeScene::CreateNode(const std::shared_ptr<NodeDefinition
     auto node = std::make_shared<Node>(definition, std::array<float, 2>{x, y});
     m_nodes.push_back(node);
     return node;
+}
+
+std::shared_ptr<Node> NodeScene::GetFromId(int id) const
+{
+    for (auto &node : m_nodes)
+    {
+        if (node->m_id == id)
+        {
+            return node;
+        }
+    }
+    return nullptr;
 }
 
 int NodeScene::GetIndex(const std::shared_ptr<Node> &node) const
