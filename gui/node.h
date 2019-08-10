@@ -20,6 +20,7 @@ class Node
     std::array<float, 2> m_pos;
     std::array<float, 2> m_size;
 
+    std::vector<std::shared_ptr<NodeSlot>> m_inslots;
     std::vector<std::shared_ptr<NodeSlot>> m_outslots;
 
 public:

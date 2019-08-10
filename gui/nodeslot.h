@@ -18,7 +18,8 @@ public:
             Rect[1] + Rect[3] / 2};
     }
     virtual void ImGui(){};
-    static std::shared_ptr<NodeSlot> Create(const NodeSocket &out);
+    static std::shared_ptr<NodeSlot> CreateOut(const NodeSocket &out);
+    static std::shared_ptr<NodeSlot> CreateIn(const NodeSocket &in);
 };
 
 template <typename T>
@@ -29,7 +30,12 @@ public:
     T Value = 0;
 };
 
-class FloatSlider : public ValueSlot<float>
+class FloatValue : public ValueSlot<float>
+{
+    void ImGui() override;
+};
+
+class FloatSlider : public FloatValue
 {
 public:
     std::string Format;

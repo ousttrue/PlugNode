@@ -22,9 +22,14 @@ namespace plugnode
 Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos)
     : m_id(g_nodeId++), m_definition(definition), m_pos(pos)
 {
+    for (auto &in : definition->Inputs)
+    {
+        auto p = NodeSlot::CreateIn(in);
+        m_inslots.push_back(p);
+    }
     for (auto &out : definition->Outputs)
     {
-        auto p = NodeSlot::Create(out);
+        auto p = NodeSlot::CreateOut(out);
         m_outslots.push_back(p);
     }
 }
