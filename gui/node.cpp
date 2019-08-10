@@ -19,7 +19,7 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
 {
     for (auto &out : definition->Outputs)
     {
-        auto p = IOutSlot::Create(out);
+        auto p = NodeSlot::Create(out);
         m_outslots.push_back(p);
     }
 }
@@ -55,7 +55,6 @@ ImVec2 Node::GetOutputSlotPos(int slot_no, float scaling) const
 
 void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling)
 {
-    // Node *node = &nodes[node_idx];
     ImGui::PushID(m_id);
     ImVec2 node_rect_min = offset + *(ImVec2 *)&m_pos * scaling;
 
@@ -65,6 +64,9 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImGui::SetCursorScreenPos(node_rect_min + NODE_WINDOW_PADDING);
     ImGui::BeginGroup(); // Lock horizontal position
     ImGui::Text("%s", m_definition->Name.c_str());
+
+    m_slotorigin = ImGui::GetCursorScreenPos();
+
     for (auto &out : m_outslots)
     {
         out->ImGui();
@@ -97,17 +99,26 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
         m_pos[0] += ImGui::GetIO().MouseDelta[0] / scaling;
         m_pos[1] += ImGui::GetIO().MouseDelta[1] / scaling;
     }
-
     ImU32 node_bg_color = context->GetBGColor(m_id);
     draw_list->AddRectFilled(node_rect_min, node_rect_max, node_bg_color, 4.0f);
     draw_list->AddRect(node_rect_min, node_rect_max, IM_COL32(100, 100, 100, 255), 4.0f);
+
+    // slots
     for (int slot_idx = 0; slot_idx < m_definition->Inputs.size(); slot_idx++)
     {
         draw_list->AddCircleFilled(offset + GetInputSlotPos(slot_idx, scaling), NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
     }
-    for (int slot_idx = 0; slot_idx < m_definition->Outputs.size(); slot_idx++)
+    // for (int slot_idx = 0; slot_idx < m_definition->Outputs.size(); slot_idx++)
+    // {
+    //     draw_list->AddCircleFilled(offset + GetOutputSlotPos(slot_idx, scaling), NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
+    // }
+
     {
-        draw_list->AddCircleFilled(offset + GetOutputSlotPos(slot_idx, scaling), NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
+        for (auto &slot : m_outslots)
+        {
+            auto pos = slot->GetLinkPosition();
+            draw_list->AddCircleFilled(ImVec2(pos[0] + NODE_WINDOW_PADDING.x, pos[1]), NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
+        }
     }
 
     ImGui::PopID();

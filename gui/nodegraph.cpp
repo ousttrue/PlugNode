@@ -169,6 +169,7 @@ private:
         {
             draw_list->ChannelsSplit(2);
             draw_list->ChannelsSetCurrent(0); // Background
+
             // Display links
             for (auto &link : scene->m_links)
             {

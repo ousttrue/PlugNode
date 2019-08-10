@@ -11,7 +11,7 @@
 namespace plugnode
 {
 
-class IOutSlot;
+class NodeSlot;
 struct Context;
 class NodeDefinition;
 struct Node
@@ -21,7 +21,8 @@ struct Node
     std::array<float, 2> m_pos;
     std::array<float, 2> m_size;
 
-    std::vector<std::shared_ptr<IOutSlot>> m_outslots;
+    ImVec2 m_slotorigin;
+    std::vector<std::shared_ptr<NodeSlot>> m_outslots;
 
     Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos);
 
