@@ -42,7 +42,8 @@ void NodeSlotBase::_DrawPin(ImDrawList *draw_list)
     auto pos = *(ImVec2 *)&GetPin()->Position;
     auto mouse = ImGui::GetMousePos();
     auto dot = Dot(pos - mouse);
-    if (dot <= SQ_NODE_SLOT_RADIUS)
+    IsHover = dot <= SQ_NODE_SLOT_RADIUS;
+    if (IsHover)
     {
         // on mouse
         draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, PIN_HOVER_COLOR);
@@ -167,13 +168,15 @@ public:
         GetPin()->Value = T();
     }
 
-    void Link(const std::shared_ptr<OutSlotBase> &src) override
+    bool Link(const std::shared_ptr<OutSlotBase> &src) override
     {
         auto srcPin = src->GetPin();
-        if (typeid(T) == srcPin->Value.type())
+        if (typeid(T) != srcPin->Value.type())
         {
-            Src = srcPin;
+            return false;
         }
+        Src = srcPin;
+        return true;
     }
 };
 

@@ -2,6 +2,7 @@
 #include "nodedefinition.h"
 #include "node.h"
 #include "nodescene.h"
+#include "nodeslot.h"
 
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -55,15 +56,47 @@ ImU32 Context::GetBGColor(int m_id) const
     }
 }
 
-void Context::ContextMenu(const ImVec2 &offset,
-                          const NodeDefinitionManager *definitions,
-                          NodeScene *scene)
+void Context::ProcessClick(const ImVec2 &offset,
+                           const NodeDefinitionManager *definitions,
+                           NodeScene *scene)
 {
-    if (!ImGui::IsAnyItemHovered() && ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
+    if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered() && ImGui::IsMouseClicked(1))
     {
         // right click on canvas
         m_node_selected = m_node_hovered_in_list = m_node_hovered_in_scene = -1;
         m_open_context_menu = true;
+        m_activeSlot = nullptr;
+    }
+    if (ImGui::IsMouseClicked(0))
+    {
+        if (m_activeSlot)
+        {
+            auto slot = scene->GetHoverInSlot();
+            if (slot)
+            {
+                if (slot->Link(m_activeSlot))
+                {
+                    //
+                }
+            }
+            m_activeSlot = nullptr;
+        }
+        else
+        {
+            auto outSlot = scene->GetHoverOutSlot();
+            if (outSlot)
+            {
+                m_activeSlot = outSlot;
+            }
+            else
+            {
+                auto inSlot = scene->GetHoverInSlot();
+                if (inSlot)
+                {
+                    inSlot->Disconnect();
+                }
+            }
+        }
     }
 
     if (m_open_context_menu)
@@ -108,6 +141,23 @@ void Context::ContextMenu(const ImVec2 &offset,
         ImGui::EndPopup();
     }
     ImGui::PopStyleVar();
+}
+
+void Context::DrawLink(ImDrawList *draw_list, float width)
+{
+    if (!m_activeSlot)
+    {
+        return;
+    }
+    auto p1 = *(ImVec2 *)&m_activeSlot->GetPin()->Position;
+    auto p2 = ImGui::GetMousePos();
+
+    draw_list->AddBezierCurve(
+        p1,
+        p1 + ImVec2(+50, 0),
+        p2 + ImVec2(-50, 0),
+        p2,
+        IM_COL32(200, 200, 100, 255), width);
 }
 
 } // namespace plugnode

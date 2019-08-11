@@ -7,6 +7,8 @@ namespace plugnode
 
 class Node;
 class NodeDefinition;
+class OutSlotBase;
+class InSlotBase;
 class NodeScene
 {
 public:
@@ -19,7 +21,9 @@ public:
     std::shared_ptr<Node> GetFromId(int id) const;
     std::shared_ptr<Node> CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y);
     void Link(const std::shared_ptr<Node> &src_node, int src_slot,
-                                   const std::shared_ptr<Node> &dst_node, int dst_slot);
+              const std::shared_ptr<Node> &dst_node, int dst_slot);
+    std::shared_ptr<OutSlotBase> GetHoverOutSlot() const;
+    std::shared_ptr<InSlotBase> GetHoverInSlot() const;
 };
 
 } // namespace plugnode

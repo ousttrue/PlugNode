@@ -30,6 +30,7 @@ protected:
     }
 
 public:
+    bool IsHover = false;
     const std::shared_ptr<NodePin> &GetPin() const { return Pin; }
     std::string Name;
     std::array<float, 4> Rect;
@@ -54,7 +55,11 @@ protected:
 
 public:
     void DrawLink(ImDrawList *draw_list, float width);
-    virtual void Link(const std::shared_ptr<OutSlotBase> &src) = 0;
+    virtual bool Link(const std::shared_ptr<OutSlotBase> &src) = 0;
+    void Disconnect()
+    {
+        Src.reset();
+    }
 
     static std::shared_ptr<InSlotBase> CreateValue(const NodeSocket &socket);
     static std::shared_ptr<InSlotBase> CreateLabel(const NodeSocket &socket);

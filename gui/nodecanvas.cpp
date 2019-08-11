@@ -111,6 +111,8 @@ private:
                 }
             }
 
+            context->DrawLink(draw_list, 3.0f * m_scaling);
+
             // Display nodes
             for (auto &node : scene->m_nodes)
             {
@@ -120,8 +122,17 @@ private:
             draw_list->ChannelsMerge();
         }
 
+        // {
+        //     std::stringstream ss;
+        //     ss << (old_any_active ? "active" : "false");
+        //     ss << ", " << (node_widgets_active ? "active" : "false");
+        //     ImGui::Begin("debug");
+        //     ImGui::Text(ss.str().c_str());
+        //     ImGui::End();
+        // }
+
         // Open context menu
-        context->ContextMenu(offset, definitions, scene);
+        context->ProcessClick(offset, definitions, scene);
 
         // Zoom and Scroll
         if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive())

@@ -51,4 +51,35 @@ void NodeScene::Link(const std::shared_ptr<Node> &src, int src_slot,
     dst->m_inslots[dst_slot]->Link(src->m_outslots[src_slot]);
 }
 
+std::shared_ptr<OutSlotBase> NodeScene::GetHoverOutSlot() const
+{
+    for (auto &node : m_nodes)
+    {
+        for (auto &slot : node->m_outslots)
+        {
+            if (slot->IsHover)
+            {
+                return slot;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<InSlotBase> NodeScene::GetHoverInSlot() const
+{
+    for (auto &node : m_nodes)
+    {
+        for (auto &slot : node->m_inslots)
+        {
+            if (slot->IsHover)
+            {
+                return slot;
+            }
+        }
+    }
+
+    return nullptr;
+}
 } // namespace plugnode

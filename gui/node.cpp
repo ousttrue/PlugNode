@@ -91,11 +91,55 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     // node左上
     ImVec2 node_rect_min = offset + *(ImVec2 *)&m_pos * scaling;
 
-    //
-    // Display node contents first
-    //
-    draw_list->ChannelsSetCurrent(1); // Foreground
     bool old_any_active = ImGui::IsAnyItemActive();
+
+    // Display node contents first
+    _DrawSlots(draw_list, node_rect_min);
+
+    // Save the size of what we have emitted and whether any of the widgets are being used
+    bool node_widgets_active = (!old_any_active && ImGui::IsAnyItemActive());
+
+    auto size = ImGui::GetItemRectSize() + NODE_WINDOW_PADDING + NODE_WINDOW_PADDING;
+    m_size[0] = size.x;
+    m_size[1] = size.y;
+    ImVec2 node_rect_max = node_rect_min + size;
+
+    //
+    // Display node box
+    //
+    draw_list->ChannelsSetCurrent(0); // Background
+    ImGui::SetCursorScreenPos(node_rect_min);
+    ImGui::InvisibleButton("node", size);
+    {
+        // process input
+        if (ImGui::IsItemHovered())
+        {
+            context->HoverInScene(m_id);
+        }
+        bool node_moving_active = ImGui::IsItemActive();
+        if (node_widgets_active || node_moving_active)
+        {
+            context->Select(m_id);
+        }
+
+        // move
+        if (node_moving_active && ImGui::IsMouseDragging(0))
+        {
+            m_pos[0] += ImGui::GetIO().MouseDelta[0] / scaling;
+            m_pos[1] += ImGui::GetIO().MouseDelta[1] / scaling;
+        }
+
+        // draw
+        draw_list->AddRectFilled(node_rect_min, node_rect_max, context->GetBGColor(m_id), 4.0f);
+        draw_list->AddRect(node_rect_min, node_rect_max, IM_COL32(100, 100, 100, 255), 4.0f);
+    }
+
+    ImGui::PopID();
+}
+
+void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min)
+{
+    draw_list->ChannelsSetCurrent(1); // Foreground
     ImGui::SetCursorScreenPos(node_rect_min + NODE_WINDOW_PADDING);
 
     {
@@ -145,42 +189,6 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
 
         ImGui::EndGroup();
     }
-
-    // Save the size of what we have emitted and whether any of the widgets are being used
-    bool node_widgets_active = (!old_any_active && ImGui::IsAnyItemActive());
-    auto size = ImGui::GetItemRectSize() + NODE_WINDOW_PADDING + NODE_WINDOW_PADDING;
-    m_size[0] = size.x;
-    m_size[1] = size.y;
-    ImVec2 node_rect_max = node_rect_min + size;
-
-    //
-    // Display node box
-    //
-    draw_list->ChannelsSetCurrent(0); // Background
-    ImGui::SetCursorScreenPos(node_rect_min);
-    ImGui::InvisibleButton("node", size);
-    {
-        // process input
-        if (ImGui::IsItemHovered())
-        {
-            context->HoverInScene(m_id);
-        }
-        bool node_moving_active = ImGui::IsItemActive();
-        if (node_widgets_active || node_moving_active)
-        {
-            context->Select(m_id);
-        }
-        if (node_moving_active && ImGui::IsMouseDragging(0))
-        {
-            m_pos[0] += ImGui::GetIO().MouseDelta[0] / scaling;
-            m_pos[1] += ImGui::GetIO().MouseDelta[1] / scaling;
-        }
-        // draw
-        draw_list->AddRectFilled(node_rect_min, node_rect_max, context->GetBGColor(m_id), 4.0f);
-        draw_list->AddRect(node_rect_min, node_rect_max, IM_COL32(100, 100, 100, 255), 4.0f);
-    }
-
-    ImGui::PopID();
 }
 
 } // namespace plugnode
