@@ -8,7 +8,10 @@
 #include <sstream>
 
 const float NODE_SLOT_RADIUS = 6.0f;
+const float SQ_NODE_SLOT_RADIUS = NODE_SLOT_RADIUS * NODE_SLOT_RADIUS;
 const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
+const auto PIN_COLOR = IM_COL32(150, 150, 150, 150);
+const auto PIN_HOVER_COLOR = IM_COL32(150, 250, 150, 150);
 
 namespace plugnode
 {
@@ -26,8 +29,28 @@ void NodeSlotBase::ImGui(ImDrawList *draw_list)
     auto size = _OnImGui();
     Rect[2] = size[0];
     Rect[3] = size[1];
-
+    _UpdatePinPosition();
     _DrawPin(draw_list);
+}
+
+static float Dot(const ImVec2 &v)
+{
+    return v.x * v.x + v.y * v.y;
+}
+void NodeSlotBase::_DrawPin(ImDrawList *draw_list)
+{
+    auto pos = *(ImVec2 *)&GetPin()->Position;
+    auto mouse = ImGui::GetMousePos();
+    auto dot = Dot(pos - mouse);
+    if (dot <= SQ_NODE_SLOT_RADIUS)
+    {
+        // on mouse
+        draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, PIN_HOVER_COLOR);
+    }
+    else
+    {
+        draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, PIN_COLOR);
+    }
 }
 
 #pragma region OutSlot
@@ -73,13 +96,11 @@ public:
     }
 };
 
-void OutSlotBase::_DrawPin(ImDrawList *draw_list)
+void OutSlotBase::_UpdatePinPosition()
 {
     GetPin()->Position = std::array<float, 2>{
         Rect[0] + Rect[2] + NODE_WINDOW_PADDING.x,
         Rect[1] + Rect[3] / 2};
-    auto pos = *(ImVec2 *)&GetPin()->Position;
-    draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
 }
 
 std::shared_ptr<OutSlotBase> OutSlotBase::CreateValue(const NodeSocket &socket)
@@ -182,13 +203,11 @@ public:
     }
 };
 
-void InSlotBase::_DrawPin(ImDrawList *draw_list)
+void InSlotBase::_UpdatePinPosition()
 {
     GetPin()->Position = std::array<float, 2>{
         Rect[0] - NODE_WINDOW_PADDING.x,
         Rect[1] + Rect[3] / 2};
-    auto pos = *(ImVec2 *)&GetPin()->Position;
-    draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
 }
 
 std::shared_ptr<InSlotBase> InSlotBase::CreateValue(const NodeSocket &socket)

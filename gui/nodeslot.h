@@ -20,7 +20,8 @@ class NodeSlotBase
 
 protected:
     virtual std::array<float, 2> _OnImGui() = 0;
-    virtual void _DrawPin(ImDrawList *draw_list) = 0;
+    void _DrawPin(ImDrawList *draw_list);
+    virtual void _UpdatePinPosition() = 0;
     NodeSlotBase();
     template <typename T>
     T *GetPinValue()
@@ -38,7 +39,7 @@ public:
 class OutSlotBase : public NodeSlotBase
 {
 protected:
-    void _DrawPin(ImDrawList *draw_list) override;
+    void _UpdatePinPosition() override;
 
 public:
     static std::shared_ptr<OutSlotBase> CreateValue(const NodeSocket &socket);
@@ -49,7 +50,7 @@ class InSlotBase : public NodeSlotBase
 {
 protected:
     std::weak_ptr<NodePin> Src;
-    void _DrawPin(ImDrawList *draw_list) override;
+    void _UpdatePinPosition() override;
 
 public:
     void DrawLink(ImDrawList *draw_list, float width);
