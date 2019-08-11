@@ -1,4 +1,5 @@
 #include "nodeslot.h"
+// #include "node.h"
 #include "nodedefinition.h"
 
 #include <imgui.h>
@@ -138,6 +139,29 @@ std::shared_ptr<OutSlotBase> OutSlotBase::CreateGui(const NodeSocket &socket)
 #pragma endregion
 
 #pragma region InSlot
+std::shared_ptr<Node> InSlotBase::GetSrcNode()
+{
+    auto src = Src.lock();
+    if (!src)
+    {
+        return nullptr;
+    }
+
+    auto srcSlot = src->Slot.lock();
+    if (!srcSlot)
+    {
+        return nullptr;
+    }
+
+    auto node = srcSlot->Owner.lock();
+    if (!node)
+    {
+        return nullptr;
+    }
+
+    return node;
+}
+
 void InSlotBase::DrawLink(ImDrawList *draw_list, float width)
 {
     auto src = Src.lock();

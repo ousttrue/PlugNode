@@ -19,7 +19,7 @@ namespace plugnode
 {
 
 Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos)
-    : m_id(g_nodeId++), m_definition(definition), m_pos(pos)
+    : m_id(g_nodeId++), Name(definition->Name), m_pos(pos)
 {
     if (!definition->Inputs.empty())
     {
@@ -65,15 +65,10 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
     }
 }
 
-const std::string &Node::GetName() const
-{
-    return m_definition->Name;
-}
-
 void Node::DrawLeftPanel(Context *context) const
 {
     ImGui::PushID(m_id);
-    if (ImGui::Selectable(m_definition->Name.c_str(), context->IsSelected(m_id)))
+    if (ImGui::Selectable(Name.c_str(), context->IsSelected(m_id)))
     {
         context->Select(m_id);
     }
@@ -146,7 +141,7 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min)
 
     {
         ImGui::BeginGroup(); // Lock horizontal position
-        ImGui::Text("%s", m_definition->Name.c_str());
+        ImGui::Text("%s", Name.c_str());
 
         if (!m_inslots.empty())
         {

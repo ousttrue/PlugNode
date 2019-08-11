@@ -116,7 +116,7 @@ void Context::ProcessClick(const ImVec2 &offset,
         if (m_node_selected != -1)
         {
             auto node = scene->GetFromId(m_node_selected);
-            ImGui::Text("Node '%s'", node->GetName().c_str());
+            ImGui::Text("Node '%s'", node->Name.c_str());
             ImGui::Separator();
             if (ImGui::MenuItem("Rename..", NULL, false, false))
             {

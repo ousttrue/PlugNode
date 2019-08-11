@@ -7,12 +7,15 @@ struct ImDrawList;
 namespace plugnode
 {
 
+class NodeSlotBase;
 struct NodePin
 {
     std::array<float, 2> Position;
     std::any Value;
+    std::weak_ptr<NodeSlotBase> Slot;
 };
 
+class Node;
 struct NodeSocket;
 class NodeSlotBase
 {
@@ -30,6 +33,7 @@ protected:
     }
 
 public:
+    std::weak_ptr<Node> Owner;
     bool IsHover = false;
     const std::shared_ptr<NodePin> &GetPin() const { return Pin; }
     std::string Name;
@@ -60,6 +64,7 @@ public:
     {
         Src.reset();
     }
+    std::shared_ptr<Node> GetSrcNode();
 
     static std::shared_ptr<InSlotBase> CreateValue(const NodeSocket &socket);
     static std::shared_ptr<InSlotBase> CreateLabel(const NodeSocket &socket);

@@ -5,7 +5,6 @@
 #include <memory>
 #include <any>
 
-
 struct ImDrawList;
 struct ImVec2;
 namespace plugnode
@@ -18,7 +17,7 @@ class OutSlotBase;
 class Node
 {
     int m_id;
-    std::shared_ptr<NodeDefinition> m_definition;
+    // std::shared_ptr<NodeDefinition> m_definition;
     std::array<float, 2> m_pos;
     std::array<float, 2> m_size;
 
@@ -28,7 +27,7 @@ public:
 
     Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos);
     int GetId() const { return m_id; }
-    const std::string &GetName() const;
+    std::string Name;
 
     void DrawLeftPanel(Context *context) const;
 

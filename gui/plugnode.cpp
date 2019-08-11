@@ -3,6 +3,7 @@
 #include "nodedefinition.h"
 #include "node.h"
 #include "nodescene.h"
+#include "nodeslot.h"
 #include <perilune/perilune.h>
 
 namespace perilune
@@ -76,8 +77,76 @@ void lua_require_plugnode(lua_State *L)
 #pragma endregion
 
 #pragma region scene
+    static perilune::UserType<std::shared_ptr<plugnode::InSlotBase>> inSlot;
+    inSlot
+        .MetaIndexDispatcher([](auto d) {
+            d->Method("get_src_node", [](plugnode::InSlotBase *p) {
+                return p->GetSrcNode();
+            });
+            d->LuaMethod("set_value", [](lua_State *L) {
+                auto self = perilune::Traits<std::shared_ptr<plugnode::InSlotBase>>::GetSelf(L, lua_upvalueindex(2));
+                auto &value = self->GetPin()->Value;
+                auto x = (float)luaL_checknumber(L, 1);
+                value = x;
+                return 0;
+            });
+        })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "inslot");
+
+    static perilune::UserType<std::vector<std::shared_ptr<plugnode::InSlotBase>> *> inSlotList;
+    inSlotList
+        .LuaNewType(L);
+    lua_setfield(L, -2, "inslot_list");
+
+    static perilune::UserType<std::shared_ptr<plugnode::OutSlotBase>> outSlot;
+    outSlot
+        .MetaIndexDispatcher([](auto d) {
+            d->LuaGetter("value", [](lua_State *L) {
+                auto self = perilune::Traits<std::shared_ptr<plugnode::OutSlotBase>>::GetSelf(L, 1);
+                auto &value = self->GetPin()->Value;
+                if (value.type() == typeid(float))
+                {
+                    auto x = std::any_cast<float>(value);
+                    return perilune::LuaPush<float>::Push(L, x);
+                }
+                else
+                {
+                    return 0;
+                }
+            });
+            d->LuaMethod("set_value", [](lua_State *L) {
+                auto self = perilune::Traits<std::shared_ptr<plugnode::OutSlotBase>>::GetSelf(L, lua_upvalueindex(2));
+                auto &value = self->GetPin()->Value;
+                auto x = (float)luaL_checknumber(L, 1);
+                value = x;
+                return 0;
+            });
+        })
+        .LuaNewType(L);
+    lua_setfield(L, -2, "outslot");
+
+    static perilune::UserType<std::vector<std::shared_ptr<plugnode::OutSlotBase>> *> outSlotList;
+    outSlotList
+        .LuaNewType(L);
+    lua_setfield(L, -2, "outslot_list");
+
     static perilune::UserType<std::shared_ptr<plugnode::Node>> node;
     node
+        .MetaIndexDispatcher([](auto d) {
+            d->Getter("is_dst", [](plugnode::Node *node) {
+                return node->m_outslots.empty();
+            });
+            d->Getter("inslots", [](plugnode::Node *node) {
+                return &node->m_inslots;
+            });
+            d->Getter("outslots", [](plugnode::Node *node) {
+                return &node->m_outslots;
+            });
+            d->Getter("name", [](plugnode::Node *node) {
+                return node->Name;
+            });
+        })
         .LuaNewType(L);
     lua_setfield(L, -2, "node");
 
@@ -92,6 +161,17 @@ void lua_require_plugnode(lua_State *L)
                                  const std::shared_ptr<plugnode::Node> &src, int src_slot,
                                  const std::shared_ptr<plugnode::Node> &dst, int dst_slot) {
                 return p->Link(src, src_slot - 1, dst, dst_slot - 1);
+            });
+            d->IndexGetter([](plugnode::NodeScene *p, int i) {
+                auto index = i - 1;
+                if (index < 0 || index >= p->m_nodes.size())
+                {
+                    return std::shared_ptr<plugnode::Node>();
+                }
+                else
+                {
+                    return p->m_nodes[index];
+                }
             });
         })
         .LuaNewType(L);

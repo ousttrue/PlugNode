@@ -17,6 +17,16 @@ NodeScene::~NodeScene()
 std::shared_ptr<Node> NodeScene::CreateNode(const std::shared_ptr<NodeDefinition> &definition, float x, float y)
 {
     auto node = std::make_shared<Node>(definition, std::array<float, 2>{x, y});
+    for (auto &slot : node->m_inslots)
+    {
+        slot->Owner = node;
+        slot->GetPin()->Slot = slot;
+    }
+    for (auto &slot : node->m_outslots)
+    {
+        slot->Owner = node;
+        slot->GetPin()->Slot = slot;
+    }
     m_nodes.push_back(node);
     return node;
 }
