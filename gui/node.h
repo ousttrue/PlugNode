@@ -20,10 +20,36 @@ class Node
     std::array<float, 2> m_pos;
     std::array<float, 2> m_size;
 
-    std::vector<std::shared_ptr<NodeSlot>> m_inslots;
+public:
+    struct InSlot
+    {
+        InSlot(const InSlot &) = delete;
+        InSlot &operator=(const InSlot &) = delete;
+
+        InSlot(const std::shared_ptr<NodeSlot> &slot)
+            : Slot(slot)
+        {
+        }
+
+        InSlot(InSlot &&src)
+        {
+            Slot = std::move(src.Slot);
+            Src = std::move(src.Src);
+        }
+
+        InSlot();
+
+        std::shared_ptr<NodeSlot> Slot;
+        std::weak_ptr<NodeSlot> Src;
+
+        void Link(const std::shared_ptr<NodeSlot> &src)
+        {
+            Src = src;
+        }
+    };
+    std::vector<InSlot> m_inslots;
     std::vector<std::shared_ptr<NodeSlot>> m_outslots;
 
-public:
     Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos);
     int GetId() const { return m_id; }
     const std::string &GetName() const;
@@ -34,22 +60,6 @@ public:
     std::array<float, 2> GetOutputSlotPos(int slot_no) const;
 
     void Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling);
-};
-
-struct NodeLink
-{
-    int SrcNode;
-    int SrcSlot;
-    int DstNode;
-    int DstSlot;
-
-    NodeLink(int input_idx, int input_slot, int output_idx, int output_slot)
-    {
-        SrcNode = input_idx;
-        SrcSlot = input_slot;
-        DstNode = output_idx;
-        DstSlot = output_slot;
-    }
 };
 
 } // namespace plugnode

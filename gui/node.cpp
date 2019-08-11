@@ -43,7 +43,7 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
             for (auto &in : definition->Inputs)
             {
                 auto p = NodeSlot::CreateValue(in, NodeSlotInOut::In);
-                m_inslots.push_back(p);
+                m_inslots.push_back({p});
             }
         }
     }
@@ -86,7 +86,7 @@ void Node::DrawLeftPanel(Context *context) const
 
 std::array<float, 2> Node::GetInputSlotPos(int slot_no) const
 {
-    return m_inslots[slot_no]->GetLinkPosition();
+    return m_inslots[slot_no].Slot->GetLinkPosition();
 }
 
 std::array<float, 2> Node::GetOutputSlotPos(int slot_no) const
@@ -119,10 +119,10 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
                 auto origin = ImGui::GetCursorScreenPos();
                 for (auto &in : m_inslots)
                 {
-                    in->ImGui(draw_list);
+                    in.Slot->ImGui(draw_list);
                 }
 
-                ImGui::SetCursorScreenPos(ImVec2(origin.x + m_inslots[0]->Rect[2] + 8, origin.y));
+                ImGui::SetCursorScreenPos(ImVec2(origin.x + m_inslots[0].Slot->Rect[2] + 8, origin.y));
                 ImGui::BeginGroup(); // Lock horizontal position
                 for (auto &out : m_outslots)
                 {
@@ -134,7 +134,7 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
             {
                 for (auto &in : m_inslots)
                 {
-                    in->ImGui(draw_list);
+                    in.Slot->ImGui(draw_list);
                 }
             }
         }

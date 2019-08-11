@@ -81,11 +81,6 @@ void lua_require_plugnode(lua_State *L)
         .LuaNewType(L);
     lua_setfield(L, -2, "node");
 
-    static perilune::UserType<std::shared_ptr<plugnode::NodeLink>> link;
-    link
-        .LuaNewType(L);
-    lua_setfield(L, -2, "link");
-
     static perilune::UserType<plugnode::NodeScene *> nodescene;
     nodescene
         .DefaultConstructorAndDestructor()

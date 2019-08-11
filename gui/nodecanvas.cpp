@@ -2,6 +2,7 @@
 #include "context.h"
 #include "node.h"
 #include "nodescene.h"
+#include "nodeslot.h"
 
 #include <math.h>
 
@@ -100,17 +101,24 @@ private:
 
             // Display links
             draw_list->ChannelsSetCurrent(0);
-            for (auto &link : scene->m_links)
+            for (auto &node : scene->m_nodes)
             {
-                auto p1 = *(ImVec2 *)&scene->GetLinkSrc(link);
-                auto p2 = *(ImVec2 *)&scene->GetLinkDst(link);
+                for (auto &inSlot : node->m_inslots)
+                {
+                    auto src = inSlot.Src.lock();
+                    if (src)
+                    {
+                        auto p1 = *(ImVec2 *)&src->GetLinkPosition();
+                        auto p2 = *(ImVec2 *)&inSlot.Slot->GetLinkPosition();
 
-                draw_list->AddBezierCurve(
-                    p1,
-                    p1 + ImVec2(+50, 0),
-                    p2 + ImVec2(-50, 0),
-                    p2,
-                    IM_COL32(200, 200, 100, 255), 3.0f * m_scaling);
+                        draw_list->AddBezierCurve(
+                            p1,
+                            p1 + ImVec2(+50, 0),
+                            p2 + ImVec2(-50, 0),
+                            p2,
+                            IM_COL32(200, 200, 100, 255), 3.0f * m_scaling);
+                    }
+                }
             }
 
             // Display nodes
