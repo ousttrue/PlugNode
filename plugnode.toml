@@ -1,0 +1,17 @@
+[[definitions]]
+name = "add"
+inputs = [ "float:a", "float:b" ]
+outputs =[ "float" ]
+logic = '''
+function (a, b)
+    return a+b
+end
+'''
+
+[[definitions]]
+name = "src"
+outputs =[ "float" ]
+
+[[definitions]]
+name = "dst"
+outputs =[ "float" ]
