@@ -7,6 +7,17 @@ node graph editor ?
 * [lua-5.3.5(MIT License)](./dependencies/lua-5.3.5/doc/readme.html)
 * [nlohmann/json(MIT License)](./dependencies/nlohmann_json/README.md)
 * [plog(Mozilla Public License 2)](./dependencies/plog/LICENSE)
+* imgui
+* im3d
+
+## ToDo
+
+* [x] zoom focus
+* [ ] out drag
+* [ ] in click
+* [ ] eval graph
+* [ ] save/load graph scene
+* [ ] shader generator
 
 ## memo
 

@@ -83,6 +83,8 @@ private:
     ///
     void ShowCanvas(Context *context, const NodeDefinitionManager *definitions, NodeScene *scene)
     {
+        auto canvasPosition = ImGui::GetCursorScreenPos();
+
         // スクロールを加味したcanvasの原点
         ImVec2 offset = ImGui::GetCursorScreenPos() + m_scrolling;
 
@@ -131,6 +133,9 @@ private:
                 m_scrolling = m_scrolling + ImGui::GetIO().MouseDelta;
             }
 
+            auto mouse = ImGui::GetIO().MousePos - canvasPosition;
+            ImVec2 focus = (mouse - m_scrolling) / m_scaling;
+
             auto io = ImGui::GetIO();
             if (io.MouseWheel > 0)
             {
@@ -141,6 +146,9 @@ private:
                 m_scaling -= 0.1f;
             }
             m_scaling = std::clamp(m_scaling, MIN_SCALING, MAX_SCALING);
+
+            auto new_mouse = m_scrolling + (focus * m_scaling);
+            m_scrolling += (mouse - new_mouse);
         }
     }
 };
