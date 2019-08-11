@@ -70,12 +70,10 @@ class OutFloatValue : public OutSlot<float>
 protected:
     std::array<float, 2> _OnImGui() override
     {
-        ImGui::PushItemWidth(80);
         ImGui::InputFloat(Name.c_str() /*"##value"*/,
                           GetPinValue<float>()
                           //, Format.c_str()
         );
-        ImGui::PopItemWidth();
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
     }
 };
@@ -196,12 +194,10 @@ class InFloatValue : public InSlot<float>
 public:
     std::array<float, 2> _OnImGui() override
     {
-        ImGui::PushItemWidth(80);
         ImGui::InputFloat(Name.c_str() /*"##value"*/,
                           GetPinValue<float>()
                           //, Format.c_str()
         );
-        ImGui::PopItemWidth();
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
     }
 };

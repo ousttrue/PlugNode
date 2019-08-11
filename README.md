@@ -15,7 +15,7 @@ node graph editor ?
 * [x] zoom focus
 * [x] out drag
 * [x] in click
-* [ ] zoom size
+* [x] zoom size
 * [ ] eval graph
 * [ ] save/load graph scene
 * [ ] shader generator

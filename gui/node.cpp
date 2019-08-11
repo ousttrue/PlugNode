@@ -94,7 +94,9 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     bool old_any_active = ImGui::IsAnyItemActive();
 
     // Display node contents first
+    ImGui::PushItemWidth(80 * scaling);
     _DrawSlots(draw_list, node_rect_min);
+    ImGui::PopItemWidth();
 
     // Save the size of what we have emitted and whether any of the widgets are being used
     bool node_widgets_active = (!old_any_active && ImGui::IsAnyItemActive());
