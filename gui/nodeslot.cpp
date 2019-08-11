@@ -4,11 +4,12 @@
 #include <sstream>
 
 const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
+const float NODE_SLOT_RADIUS = 6.0f;
 
 namespace plugnode
 {
 
-void NodeSlot::ImGui()
+void NodeSlot::ImGui(ImDrawList *draw_list)
 {
     auto pos = ImGui::GetCursorScreenPos();
     Rect[0] = pos.x;
@@ -16,6 +17,13 @@ void NodeSlot::ImGui()
     auto size = OnImGui();
     Rect[2] = size[0];
     Rect[3] = size[1];
+    DrawSocket(draw_list);
+}
+void NodeSlot::DrawSocket(ImDrawList *draw_list)
+{
+    // auto draw_list = ImGui::GetWindowDrawList();
+    auto pos = *(ImVec2 *)&GetLinkPosition();
+    draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
 }
 
 std::array<float, 2> LabelSlot::OnImGui()

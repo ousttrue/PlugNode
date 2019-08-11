@@ -9,7 +9,6 @@
 #include <imgui_internal.h>
 
 const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
-const float NODE_SLOT_RADIUS = 6.0f;
 
 static int g_nodeId = 1;
 
@@ -120,14 +119,14 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
                 auto origin = ImGui::GetCursorScreenPos();
                 for (auto &in : m_inslots)
                 {
-                    in->ImGui();
+                    in->ImGui(draw_list);
                 }
 
                 ImGui::SetCursorScreenPos(ImVec2(origin.x + m_inslots[0]->Rect[2] + 8, origin.y));
                 ImGui::BeginGroup(); // Lock horizontal position
                 for (auto &out : m_outslots)
                 {
-                    out->ImGui();
+                    out->ImGui(draw_list);
                 }
                 ImGui::EndGroup();
             }
@@ -135,7 +134,7 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
             {
                 for (auto &in : m_inslots)
                 {
-                    in->ImGui();
+                    in->ImGui(draw_list);
                 }
             }
         }
@@ -145,7 +144,7 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
             {
                 for (auto &out : m_outslots)
                 {
-                    out->ImGui();
+                    out->ImGui(draw_list);
                 }
             }
             else
@@ -189,18 +188,6 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
         // draw
         draw_list->AddRectFilled(node_rect_min, node_rect_max, context->GetBGColor(m_id), 4.0f);
         draw_list->AddRect(node_rect_min, node_rect_max, IM_COL32(100, 100, 100, 255), 4.0f);
-    }
-
-    // slots
-    for (auto &slot : m_inslots)
-    {
-        auto pos = *(ImVec2 *)&slot->GetLinkPosition();
-        draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
-    }
-    for (auto &slot : m_outslots)
-    {
-        auto pos = *(ImVec2 *)&slot->GetLinkPosition();
-        draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, IM_COL32(150, 150, 150, 150));
     }
 
     ImGui::PopID();

@@ -3,6 +3,7 @@
 #include <memory>
 #include <array>
 
+struct ImDrawList;
 namespace plugnode
 {
 
@@ -15,6 +16,9 @@ enum class NodeSlotInOut
 struct NodeSocket;
 class NodeSlot
 {
+private:
+    void DrawSocket(ImDrawList *draw_list);
+
 protected:
     NodeSlotInOut InOut;
     NodeSlot(NodeSlotInOut inout) : InOut(inout) {}
@@ -23,7 +27,7 @@ protected:
 public:
     std::array<float, 4> Rect;
     std::array<float, 2> GetLinkPosition() const;
-    void ImGui();
+    void ImGui(ImDrawList *draw_list);
     virtual std::array<float, 2> OnImGui() = 0;
 
     static std::shared_ptr<NodeSlot> CreateGui(const NodeSocket &socket, NodeSlotInOut inout);
