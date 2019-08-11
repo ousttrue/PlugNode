@@ -1,6 +1,7 @@
 #include "nodescene.h"
 #include "nodedefinition.h"
 #include "node.h"
+#include "nodeslot.h"
 
 namespace plugnode
 {
@@ -47,7 +48,7 @@ int NodeScene::GetIndex(const std::shared_ptr<Node> &node) const
 void NodeScene::Link(const std::shared_ptr<Node> &src, int src_slot,
                      const std::shared_ptr<Node> &dst, int dst_slot)
 {
-    dst->m_inslots[dst_slot].Link(src->m_outslots[src_slot]);
+    dst->m_inslots[dst_slot]->Link(src->m_outslots[src_slot]);
 }
 
 } // namespace plugnode

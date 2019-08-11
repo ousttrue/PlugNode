@@ -1,70 +1,62 @@
 #pragma once
-#include <string>
-#include <memory>
 #include <array>
+#include <memory>
+#include <any>
 
 struct ImDrawList;
 namespace plugnode
 {
 
-enum class NodeSlotInOut
+struct NodePin
 {
-    In,
-    Out,
+    std::array<float, 2> Position;
+    std::any Value;
 };
 
 struct NodeSocket;
-class NodeSlot
+class NodeSlotBase
 {
-private:
-    void DrawSocket(ImDrawList *draw_list);
+    std::shared_ptr<NodePin> Pin;
 
 protected:
-    NodeSlotInOut InOut;
-    NodeSlot(NodeSlotInOut inout) : InOut(inout) {}
+    virtual std::array<float, 2> _OnImGui() = 0;
+    virtual void _DrawPin(ImDrawList *draw_list) = 0;
+    NodeSlotBase();
+    template <typename T>
+    T *GetPinValue()
+    {
+        return std::any_cast<T>(&Pin->Value);
+    }
+
+public:
+    const std::shared_ptr<NodePin> &GetPin() const { return Pin; }
     std::string Name;
-
-public:
     std::array<float, 4> Rect;
-    std::array<float, 2> GetLinkPosition() const;
     void ImGui(ImDrawList *draw_list);
-    virtual std::array<float, 2> OnImGui() = 0;
-
-    static std::shared_ptr<NodeSlot> CreateGui(const NodeSocket &socket, NodeSlotInOut inout);
-    static std::shared_ptr<NodeSlot> CreateValue(const NodeSocket &socket, NodeSlotInOut inout);
-    static std::shared_ptr<NodeSlot> CreateLabel(const NodeSocket &socket, NodeSlotInOut inout);
 };
 
-class LabelSlot : public NodeSlot
+class OutSlotBase : public NodeSlotBase
 {
+protected:
+    void _DrawPin(ImDrawList *draw_list) override;
+
 public:
-    LabelSlot(NodeSlotInOut inout) : NodeSlot(inout) {}
-    std::array<float, 2> OnImGui() override;
+    static std::shared_ptr<OutSlotBase> CreateValue(const NodeSocket &socket);
+    static std::shared_ptr<OutSlotBase> CreateGui(const NodeSocket &socket);
 };
 
-template <typename T>
-class ValueSlot : public NodeSlot
+class InSlotBase : public NodeSlotBase
 {
-public:
-    ValueSlot(NodeSlotInOut inout) : NodeSlot(inout) {}
-    T Value = 0;
-};
+protected:
+    std::weak_ptr<NodePin> Src;
+    void _DrawPin(ImDrawList *draw_list) override;
 
-class FloatValue : public ValueSlot<float>
-{
 public:
-    FloatValue(NodeSlotInOut inout) : ValueSlot(inout) {}
-    std::array<float, 2> OnImGui() override;
-};
+    void DrawLink(ImDrawList *draw_list, float width);
+    virtual void Link(const std::shared_ptr<OutSlotBase> &src) = 0;
 
-class FloatSlider : public FloatValue
-{
-public:
-    FloatSlider(NodeSlotInOut inout) : FloatValue(inout) {}
-    std::string Format;
-    float Min = 0;
-    float Max = 1.0f;
-    std::array<float, 2> OnImGui() override;
+    static std::shared_ptr<InSlotBase> CreateValue(const NodeSocket &socket);
+    static std::shared_ptr<InSlotBase> CreateLabel(const NodeSocket &socket);
 };
 
 } // namespace plugnode

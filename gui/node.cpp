@@ -28,12 +28,12 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
             // both
             for (auto &in : definition->Inputs)
             {
-                auto p = NodeSlot::CreateLabel(in, NodeSlotInOut::In);
+                auto p = InSlotBase::CreateLabel(in);
                 m_inslots.push_back(p);
             }
             for (auto &out : definition->Outputs)
             {
-                auto p = NodeSlot::CreateValue(out, NodeSlotInOut::Out);
+                auto p = OutSlotBase::CreateValue(out);
                 m_outslots.push_back(p);
             }
         }
@@ -42,7 +42,7 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
             // only input
             for (auto &in : definition->Inputs)
             {
-                auto p = NodeSlot::CreateValue(in, NodeSlotInOut::In);
+                auto p = InSlotBase::CreateValue(in);
                 m_inslots.push_back({p});
             }
         }
@@ -54,7 +54,7 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
             // only output
             for (auto &out : definition->Outputs)
             {
-                auto p = NodeSlot::CreateGui(out, NodeSlotInOut::Out);
+                auto p = OutSlotBase::CreateGui(out);
                 m_outslots.push_back(p);
             }
         }
@@ -84,16 +84,6 @@ void Node::DrawLeftPanel(Context *context) const
     ImGui::PopID();
 }
 
-std::array<float, 2> Node::GetInputSlotPos(int slot_no) const
-{
-    return m_inslots[slot_no].Slot->GetLinkPosition();
-}
-
-std::array<float, 2> Node::GetOutputSlotPos(int slot_no) const
-{
-    return m_outslots[slot_no]->GetLinkPosition();
-}
-
 void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling)
 {
     ImGui::PushID(m_id);
@@ -119,10 +109,10 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
                 auto origin = ImGui::GetCursorScreenPos();
                 for (auto &in : m_inslots)
                 {
-                    in.Slot->ImGui(draw_list);
+                    in->ImGui(draw_list);
                 }
 
-                ImGui::SetCursorScreenPos(ImVec2(origin.x + m_inslots[0].Slot->Rect[2] + 8, origin.y));
+                ImGui::SetCursorScreenPos(ImVec2(origin.x + m_inslots[0]->Rect[2] + 8, origin.y));
                 ImGui::BeginGroup(); // Lock horizontal position
                 for (auto &out : m_outslots)
                 {
@@ -134,7 +124,7 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
             {
                 for (auto &in : m_inslots)
                 {
-                    in.Slot->ImGui(draw_list);
+                    in->ImGui(draw_list);
                 }
             }
         }

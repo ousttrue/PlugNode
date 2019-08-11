@@ -105,19 +105,7 @@ private:
             {
                 for (auto &inSlot : node->m_inslots)
                 {
-                    auto src = inSlot.Src.lock();
-                    if (src)
-                    {
-                        auto p1 = *(ImVec2 *)&src->GetLinkPosition();
-                        auto p2 = *(ImVec2 *)&inSlot.Slot->GetLinkPosition();
-
-                        draw_list->AddBezierCurve(
-                            p1,
-                            p1 + ImVec2(+50, 0),
-                            p2 + ImVec2(-50, 0),
-                            p2,
-                            IM_COL32(200, 200, 100, 255), 3.0f * m_scaling);
-                    }
+                    inSlot->DrawLink(draw_list, 3.0f * m_scaling);
                 }
             }
 
