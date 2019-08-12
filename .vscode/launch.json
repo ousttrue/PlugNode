@@ -5,15 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "shader",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/app/plugnode.exe",
+            "args": [
+                "_main.lua", "shader"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/scripts",
+            "environment": [],
+            "externalConsole": false
+        },
+        {
             "name": "plugnode",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/app/plugnode.exe",
             "args": [
-                "scripts/plugnode.lua"
+                "_main.lua", "calc"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/scripts",
             "environment": [],
             "externalConsole": false
         }

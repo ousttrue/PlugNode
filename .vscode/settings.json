@@ -9,6 +9,7 @@
         "Upvalue",
         "dofile",
         "dolibrary",
+        "eval",
         "imgui",
         "inout",
         "isnil",
