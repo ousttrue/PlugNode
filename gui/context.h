@@ -17,6 +17,7 @@ class Context
     std::shared_ptr<OutSlotBase> m_activeSlot;
 
 public:
+    static bool s_popup;
     void NewFrame()
     {
         m_open_context_menu = false;
@@ -35,8 +36,8 @@ public:
     bool IsSelected(int ID) const;
     uint32_t GetBGColor(int m_id) const;
     void ProcessClick(const ImVec2 &offset,
-                     const class NodeDefinitionManager *definitions,
-                     class NodeScene *scene);
+                      const class NodeDefinitionManager *definitions,
+                      class NodeScene *scene);
     void DrawLink(ImDrawList *draw_list, float width);
 };
 

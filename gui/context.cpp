@@ -14,6 +14,8 @@ ImU32 NODE_HOVER_COLOR = IM_COL32(75, 75, 90, 255);
 namespace plugnode
 {
 
+bool Context::s_popup = false;
+
 void Context::HoverInList(int id)
 {
     m_node_hovered_in_list = id;
@@ -110,7 +112,8 @@ void Context::ProcessClick(const ImVec2 &offset,
 
     // Draw context menu
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
-    if (ImGui::BeginPopup("context_menu"))
+    s_popup = ImGui::BeginPopup("context_menu");
+    if (s_popup)
     {
         ImVec2 scene_pos = ImGui::GetMousePosOnOpeningCurrentPopup() - offset;
         if (m_node_selected != -1)

@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "window_state.h"
+#include "context.h"
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
@@ -92,7 +93,7 @@ bool GUI::NewFrame(const WindowState *windowState)
     ImGui::NewFrame();
 
     // camera update
-    return ImGui::IsAnyWindowHovered();
+    return ImGui::IsAnyWindowHovered() || plugnode::Context::s_popup;
 }
 
 void GUI::Show()
