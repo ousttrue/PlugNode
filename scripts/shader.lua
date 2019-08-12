@@ -58,7 +58,9 @@ float4 main(VS_OUTPUT _in): SV_Target
 --]]
 define {
     {"VERTEX_POSITION", {}, {{"float3_t", "type"}}},
+    {"vec4_w1", {{"float3_t", "type"}}, {{"float4_t", "type"}}},
     {"SV_POSITION", {{"float4_t", "type"}}, {}},
+
     {"const_float4_color", {}, {{"value", "float4", "color"}}},
     {"SV_TARGET", {{"float4_t", "type"}}, {}}
 

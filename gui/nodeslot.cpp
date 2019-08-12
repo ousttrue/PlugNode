@@ -243,13 +243,23 @@ public:
         GetPin()->Value = T();
     }
 
-    bool Link(const std::shared_ptr<OutSlotBase> &src) override
+    bool Acceptable(const std::shared_ptr<OutSlotBase> &src) override
     {
         auto srcPin = src->GetPin();
-        if (typeid(T) != srcPin->Value.type())
+        if (typeid(T) == typeid(std::string))
         {
             return false;
         }
+        return typeid(T) == srcPin->Value.type();
+    }
+
+    bool Link(const std::shared_ptr<OutSlotBase> &src) override
+    {
+        if (!Acceptable(src))
+        {
+            return false;
+        }
+        auto srcPin = src->GetPin();
         Src = srcPin;
         return true;
     }
@@ -262,6 +272,27 @@ public:
     {
         ImGui::Text(Name.c_str());
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+    }
+
+    bool Acceptable(const std::shared_ptr<OutSlotBase> &src) override
+    {
+        auto srcPin = src->GetPin();
+        if (typeid(std::string) == srcPin->Value.type())
+        {
+            // type
+            return Name == src->Name;
+        }
+        else
+        {
+            if (Name == "float4_t")
+            {
+                return srcPin->Value.type() == typeid(std::array<float, 4>);
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
     static std::shared_ptr<InSlotBase> Create(const NodeSlotDefinition &definition)
@@ -327,13 +358,17 @@ std::shared_ptr<InSlotBase> InSlotBase::CreateValue(const NodeSlotDefinition &de
     }
 }
 
-std::shared_ptr<InSlotBase> InSlotBase::CreateLabel(const NodeSlotDefinition &socket)
+std::shared_ptr<InSlotBase> InSlotBase::CreateLabel(const NodeSlotDefinition &definition)
 {
-    if (socket.type == "float")
+    if (definition.type == "float")
     {
         auto p = new InLabelSlot<float>;
-        p->Name = socket.name;
+        p->Name = definition.name;
         return std::shared_ptr<InSlotBase>(p);
+    }
+    else if (definition.type == "type")
+    {
+        return InType::Create(definition);
     }
     else
     {

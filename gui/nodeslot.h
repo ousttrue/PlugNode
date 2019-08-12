@@ -59,6 +59,7 @@ protected:
 
 public:
     void DrawLink(ImDrawList *draw_list, float width);
+    virtual bool Acceptable(const std::shared_ptr<OutSlotBase> &src) = 0;
     virtual bool Link(const std::shared_ptr<OutSlotBase> &src) = 0;
     void Disconnect()
     {

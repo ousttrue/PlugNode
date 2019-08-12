@@ -17,11 +17,13 @@ node graph editor ?
 * [x] in click
 * [x] zoom size
 * [x] eval graph
-* [ ] slot id
-* [ ] accept
+* [x] accept
 * [ ] remove node
-* [ ] save/load graph scene
 * [ ] shader generator
+* [ ] type型
+* [ ] slot id
+* [ ] context singleton
+* [ ] save/load graph scene
 
 ## memo
 
