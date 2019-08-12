@@ -1,7 +1,7 @@
 ﻿#include "node.h"
 #include "context.h"
 #include "nodedefinition.h"
-#include "nodeslot.h"
+#include "nodeslot/nodeslot.h"
 #include <sstream>
 
 #include <imgui.h>
@@ -28,12 +28,12 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
             // both
             for (auto &in : definition->Inputs)
             {
-                auto p = InSlotBase::CreateLabel(in);
+                auto p = InSlotBase::Create(in, SlotType::LabelOnly);
                 m_inslots.push_back(p);
             }
             for (auto &out : definition->Outputs)
             {
-                auto p = OutSlotBase::CreateValue(out);
+                auto p = OutSlotBase::Create(out, SlotType::Value);
                 m_outslots.push_back(p);
             }
         }
@@ -42,7 +42,7 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
             // only input
             for (auto &in : definition->Inputs)
             {
-                auto p = InSlotBase::CreateValue(in);
+                auto p = InSlotBase::Create(in, SlotType::Value);
                 m_inslots.push_back({p});
             }
         }
@@ -54,7 +54,7 @@ Node::Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<f
             // only output
             for (auto &out : definition->Outputs)
             {
-                auto p = OutSlotBase::CreateGui(out);
+                auto p = OutSlotBase::Create(out, SlotType::UserInterface);
                 m_outslots.push_back(p);
             }
         }

@@ -41,14 +41,20 @@ public:
     void ImGui(ImDrawList *draw_list, float scale);
 };
 
+enum class SlotType
+{
+    Value,
+    LabelOnly,
+    UserInterface,
+};
+
 class OutSlotBase : public NodeSlotBase
 {
 protected:
     void _UpdatePinPosition() override;
 
 public:
-    static std::shared_ptr<OutSlotBase> CreateValue(const NodeSlotDefinition &socket);
-    static std::shared_ptr<OutSlotBase> CreateGui(const NodeSlotDefinition &socket);
+    static std::shared_ptr<OutSlotBase> Create(const NodeSlotDefinition &socket, SlotType slotType);
 };
 
 class InSlotBase : public NodeSlotBase
@@ -67,8 +73,7 @@ public:
     }
     std::shared_ptr<Node> GetSrcNode();
 
-    static std::shared_ptr<InSlotBase> CreateValue(const NodeSlotDefinition &socket);
-    static std::shared_ptr<InSlotBase> CreateLabel(const NodeSlotDefinition &socket);
+    static std::shared_ptr<InSlotBase> Create(const NodeSlotDefinition &socket, SlotType slotType);
 };
 
 } // namespace plugnode

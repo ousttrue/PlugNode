@@ -3,6 +3,7 @@ SET(DEPENDENCIES_DIR ${CMAKE_CURRENT_LIST_DIR}/../dependencies)
 
 FILE(GLOB SRC
     *.cpp
+    **/*.cpp
     ) 
 
 ADD_LIBRARY(${SUB_NAME}
@@ -17,6 +18,7 @@ TARGET_INCLUDE_DIRECTORIES(${SUB_NAME} PUBLIC
     ${DEPENDENCIES_DIR}/lua
     ${DEPENDENCIES_DIR}/perilune/include
     ../common
+    .
     )
 TARGET_LINK_LIBRARIES(${SUB_NAME}
     )

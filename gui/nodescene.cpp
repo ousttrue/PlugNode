@@ -1,7 +1,7 @@
 #include "nodescene.h"
 #include "nodedefinition.h"
 #include "node.h"
-#include "nodeslot.h"
+#include "nodeslot/nodeslot.h"
 
 namespace plugnode
 {

@@ -3,7 +3,7 @@
 #include "nodedefinition.h"
 #include "node.h"
 #include "nodescene.h"
-#include "nodeslot.h"
+#include "nodeslot/nodeslot.h"
 #include <perilune/perilune.h>
 
 namespace perilune

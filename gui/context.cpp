@@ -2,7 +2,7 @@
 #include "nodedefinition.h"
 #include "node.h"
 #include "nodescene.h"
-#include "nodeslot.h"
+#include "nodeslot/nodeslot.h"
 
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS

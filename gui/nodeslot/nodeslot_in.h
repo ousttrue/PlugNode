@@ -1,0 +1,153 @@
+#pragma once
+#include "nodeslot.h"
+#include <memory>
+
+namespace plugnode
+{
+
+std::shared_ptr<Node> InSlotBase::GetSrcNode()
+{
+    auto src = Src.lock();
+    if (!src)
+    {
+        return nullptr;
+    }
+
+    auto srcSlot = src->Slot.lock();
+    if (!srcSlot)
+    {
+        return nullptr;
+    }
+
+    auto node = srcSlot->Owner.lock();
+    if (!node)
+    {
+        return nullptr;
+    }
+
+    return node;
+}
+
+void InSlotBase::DrawLink(ImDrawList *draw_list, float width)
+{
+    auto src = Src.lock();
+    if (!src)
+    {
+        return;
+    }
+
+    auto p1 = *(ImVec2 *)&src->Position;
+    auto p2 = *(ImVec2 *)&GetPin()->Position;
+
+    draw_list->AddBezierCurve(
+        p1,
+        p1 + ImVec2(+50, 0),
+        p2 + ImVec2(-50, 0),
+        p2,
+        IM_COL32(200, 200, 100, 255), width);
+}
+
+template <typename T>
+class InSlot : public InSlotBase
+{
+public:
+    InSlot()
+    {
+        GetPin()->Value = T();
+    }
+
+    bool Acceptable(const std::shared_ptr<OutSlotBase> &src) override
+    {
+        auto srcPin = src->GetPin();
+        if (typeid(T) == typeid(std::string))
+        {
+            return false;
+        }
+        return typeid(T) == srcPin->Value.type();
+    }
+
+    bool Link(const std::shared_ptr<OutSlotBase> &src) override
+    {
+        if (!Acceptable(src))
+        {
+            return false;
+        }
+        auto srcPin = src->GetPin();
+        Src = srcPin;
+        return true;
+    }
+};
+
+class InType : public InSlot<std::string>
+{
+public:
+    std::array<float, 2> _OnImGui(float scale) override
+    {
+        ImGui::Text(Name.c_str());
+        return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+    }
+
+    bool Acceptable(const std::shared_ptr<OutSlotBase> &src) override
+    {
+        auto srcPin = src->GetPin();
+        if (typeid(std::string) == srcPin->Value.type())
+        {
+            // type
+            return Name == src->Name;
+        }
+        else
+        {
+            if (Name == "float4_t")
+            {
+                return srcPin->Value.type() == typeid(std::array<float, 4>);
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    static std::shared_ptr<InSlotBase> Create(const NodeSlotDefinition &definition)
+    {
+        auto p = new InType;
+        // std::stringstream ss;
+        // ss << "##type:" << definition.name;
+        p->Name = definition.name;
+        // p->Format = ss.str();
+        return std::shared_ptr<InSlotBase>(p);
+    }
+};
+
+template <typename T>
+class InLabelSlot : public InSlot<T>
+{
+public:
+    std::array<float, 2> _OnImGui(float scale) override
+    {
+        ImGui::Text(Name.c_str());
+        return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+    }
+};
+
+class InFloatValue : public InSlot<float>
+{
+public:
+    std::array<float, 2> _OnImGui(float scale) override
+    {
+        ImGui::InputFloat(Name.c_str() /*"##value"*/,
+                          GetPinValue<float>()
+                          //, Format.c_str()
+        );
+        return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+    }
+};
+
+void InSlotBase::_UpdatePinPosition()
+{
+    GetPin()->Position = std::array<float, 2>{
+        Rect[0] - NODE_WINDOW_PADDING.x,
+        Rect[1] + Rect[3] / 2};
+}
+
+} // namespace plugnode

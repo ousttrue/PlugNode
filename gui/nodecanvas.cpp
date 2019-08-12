@@ -2,7 +2,7 @@
 #include "context.h"
 #include "node.h"
 #include "nodescene.h"
-#include "nodeslot.h"
+#include "nodeslot/nodeslot.h"
 
 #include <math.h>
 
