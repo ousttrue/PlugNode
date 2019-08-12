@@ -16,7 +16,7 @@ struct NodePin
 };
 
 class Node;
-struct NodeSocket;
+struct NodeSlotDefinition;
 class NodeSlotBase
 {
     std::shared_ptr<NodePin> Pin;
@@ -47,8 +47,8 @@ protected:
     void _UpdatePinPosition() override;
 
 public:
-    static std::shared_ptr<OutSlotBase> CreateValue(const NodeSocket &socket);
-    static std::shared_ptr<OutSlotBase> CreateGui(const NodeSocket &socket);
+    static std::shared_ptr<OutSlotBase> CreateValue(const NodeSlotDefinition &socket);
+    static std::shared_ptr<OutSlotBase> CreateGui(const NodeSlotDefinition &socket);
 };
 
 class InSlotBase : public NodeSlotBase
@@ -66,8 +66,8 @@ public:
     }
     std::shared_ptr<Node> GetSrcNode();
 
-    static std::shared_ptr<InSlotBase> CreateValue(const NodeSocket &socket);
-    static std::shared_ptr<InSlotBase> CreateLabel(const NodeSocket &socket);
+    static std::shared_ptr<InSlotBase> CreateValue(const NodeSlotDefinition &socket);
+    static std::shared_ptr<InSlotBase> CreateLabel(const NodeSlotDefinition &socket);
 };
 
 } // namespace plugnode

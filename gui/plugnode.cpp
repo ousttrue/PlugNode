@@ -10,12 +10,12 @@ namespace perilune
 {
 
 template <>
-struct LuaTable<plugnode::NodeSocket>
+struct LuaTable<plugnode::NodeSlotDefinition>
 {
-    static plugnode::NodeSocket Get(lua_State *L, int index)
+    static plugnode::NodeSlotDefinition Get(lua_State *L, int index)
     {
         auto table = LuaTableToTuple<std::string, std::string>(L, index);
-        return plugnode::NodeSocket{
+        return plugnode::NodeSlotDefinition{
             std::get<0>(table),
             std::get<1>(table),
         };
@@ -30,12 +30,12 @@ void lua_require_plugnode(lua_State *L)
     lua_newtable(L);
 
 #pragma region definitions
-    static perilune::UserType<plugnode::NodeSocket> nodeSocket;
+    static perilune::UserType<plugnode::NodeSlotDefinition> nodeSocket;
     nodeSocket
         .StaticMethod("new", [](std::string name, std::string type) {
-            return plugnode::NodeSocket{name, type};
+            return plugnode::NodeSlotDefinition{name, type};
         })
-        .MetaMethod(perilune::MetaKey::__tostring, [](plugnode::NodeSocket *socket) {
+        .MetaMethod(perilune::MetaKey::__tostring, [](plugnode::NodeSlotDefinition *socket) {
             std::stringstream ss;
             ss << "[" << socket->type << "]" << socket->name;
             return ss.str();
@@ -43,7 +43,7 @@ void lua_require_plugnode(lua_State *L)
         .LuaNewType(L);
     lua_setfield(L, -2, "node_socket");
 
-    static perilune::UserType<std::vector<plugnode::NodeSocket> *>
+    static perilune::UserType<std::vector<plugnode::NodeSlotDefinition> *>
         stringList;
     perilune::AddDefaultMethods(stringList);
     stringList

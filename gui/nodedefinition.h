@@ -7,7 +7,7 @@
 namespace plugnode
 {
 
-struct NodeSocket
+struct NodeSlotDefinition
 {
     std::string name;
     std::string type;
@@ -29,8 +29,8 @@ public:
     }
 
     std::string Name;
-    std::vector<NodeSocket> Inputs;
-    std::vector<NodeSocket> Outputs;
+    std::vector<NodeSlotDefinition> Inputs;
+    std::vector<NodeSlotDefinition> Outputs;
 
     friend class NodeDefinitionManager;
 };

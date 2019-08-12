@@ -103,7 +103,7 @@ void OutSlotBase::_UpdatePinPosition()
         Rect[1] + Rect[3] / 2};
 }
 
-std::shared_ptr<OutSlotBase> OutSlotBase::CreateValue(const NodeSocket &socket)
+std::shared_ptr<OutSlotBase> OutSlotBase::CreateValue(const NodeSlotDefinition &socket)
 {
     if (socket.type == "float")
     {
@@ -120,7 +120,7 @@ std::shared_ptr<OutSlotBase> OutSlotBase::CreateValue(const NodeSocket &socket)
     }
 }
 
-std::shared_ptr<OutSlotBase> OutSlotBase::CreateGui(const NodeSocket &socket)
+std::shared_ptr<OutSlotBase> OutSlotBase::CreateGui(const NodeSlotDefinition &socket)
 {
     if (socket.type == "float")
     {
@@ -233,7 +233,7 @@ void InSlotBase::_UpdatePinPosition()
         Rect[1] + Rect[3] / 2};
 }
 
-std::shared_ptr<InSlotBase> InSlotBase::CreateValue(const NodeSocket &socket)
+std::shared_ptr<InSlotBase> InSlotBase::CreateValue(const NodeSlotDefinition &socket)
 {
     if (socket.type == "float")
     {
@@ -250,7 +250,7 @@ std::shared_ptr<InSlotBase> InSlotBase::CreateValue(const NodeSocket &socket)
     }
 }
 
-std::shared_ptr<InSlotBase> InSlotBase::CreateLabel(const NodeSocket &socket)
+std::shared_ptr<InSlotBase> InSlotBase::CreateLabel(const NodeSlotDefinition &socket)
 {
     if (socket.type == "float")
     {
