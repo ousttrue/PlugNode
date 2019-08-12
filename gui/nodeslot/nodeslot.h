@@ -7,6 +7,10 @@ struct ImDrawList;
 namespace plugnode
 {
 
+struct TypeSlotType
+{
+};
+
 class NodeSlotBase;
 class Node;
 class Context;
@@ -38,6 +42,7 @@ public:
     bool IsHover = false;
     const std::shared_ptr<NodePin> &GetPin() const { return Pin; }
     std::string Name;
+    std::any TargetType;
     std::array<float, 4> Rect;
     void ImGui(ImDrawList *draw_list, Context *context);
 };
@@ -68,6 +73,7 @@ public:
     void DrawLink(ImDrawList *draw_list, Context *context);
     virtual bool Acceptable(const std::shared_ptr<OutSlotBase> &src) = 0;
     virtual bool Link(const std::shared_ptr<OutSlotBase> &src) = 0;
+
     void Disconnect()
     {
         Src.reset();

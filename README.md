@@ -20,7 +20,7 @@ node graph editor ?
 * [x] accept
 * [x] remove node
 * [ ] shader generator
-* [ ] type型
+* [x] type型
 * [ ] slot id
 * [ ] context singleton
 * [ ] save/load graph scene

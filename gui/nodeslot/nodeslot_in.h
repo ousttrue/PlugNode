@@ -79,7 +79,7 @@ public:
     }
 };
 
-class InType : public InSlot<std::string>
+class InType : public InSlot<TypeSlotType>
 {
 public:
     std::array<float, 2> _OnImGui(Context *context) override
@@ -90,31 +90,26 @@ public:
 
     bool Acceptable(const std::shared_ptr<OutSlotBase> &src) override
     {
-        auto srcPin = src->GetPin();
-        if (typeid(std::string) == srcPin->Value.type())
+        if (InSlot<TypeSlotType>::Acceptable(src))
         {
-            // type
+            // out: type => in: type
             return Name == src->Name;
         }
         else
         {
-            if (Name == "float4_t")
-            {
-                return srcPin->Value.type() == typeid(std::array<float, 4>);
-            }
-            else
-            {
-                return false;
-            }
+            // out: value => in: type
+            return src->GetPin()->Value.type() == TargetType.type();
         }
     }
 
+    template<typename T>
     static std::shared_ptr<InSlotBase> Create(const NodeSlotDefinition &definition)
     {
         auto p = new InType;
         // std::stringstream ss;
         // ss << "##type:" << definition.name;
         p->Name = definition.name;
+        p->TargetType = T();
         // p->Format = ss.str();
         return std::shared_ptr<InSlotBase>(p);
     }

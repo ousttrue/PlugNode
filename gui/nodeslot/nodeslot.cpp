@@ -32,8 +32,6 @@ void NodeSlotBase::ImGui(ImDrawList *draw_list, Context *context)
     IsHover = context->DrawPin(draw_list, pin[0], pin[1]);
 }
 
-
-
 std::shared_ptr<OutSlotBase> OutSlotBase::Create(const NodeSlotDefinition &definition, SlotType slotType)
 {
     if (definition.type == "float")
@@ -69,7 +67,18 @@ std::shared_ptr<OutSlotBase> OutSlotBase::Create(const NodeSlotDefinition &defin
     }
     else if (definition.type == "type")
     {
-        return OutType::Create(definition);
+        if (definition.name == "float3_t")
+        {
+            return OutType::Create<std::array<float, 3>>(definition);
+        }
+        else if (definition.name == "float4_t")
+        {
+            return OutType::Create<std::array<float, 4>>(definition);
+        }
+        else
+        {
+            throw std::exception("not implemented");
+        }
     }
     else
     {
@@ -105,7 +114,18 @@ std::shared_ptr<InSlotBase> InSlotBase::Create(const NodeSlotDefinition &definit
     }
     else if (definition.type == "type")
     {
-        return InType::Create(definition);
+        if (definition.name == "float3_t")
+        {
+            return InType::Create<std::array<float, 3>>(definition);
+        }
+        else if (definition.name == "float4_t")
+        {
+            return InType::Create<std::array<float, 4>>(definition);
+        }
+        else
+        {
+            throw std::exception("not implemented");
+        }
     }
     else
     {

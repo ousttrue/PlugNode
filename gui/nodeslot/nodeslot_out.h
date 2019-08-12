@@ -12,7 +12,7 @@ public:
     }
 };
 
-class OutType : public OutSlot<std::string>
+class OutType : public OutSlot<TypeSlotType>
 {
 protected:
     std::array<float, 2> _OnImGui(Context *context) override
@@ -24,12 +24,14 @@ protected:
     }
 
 public:
+    template <typename T>
     static std::shared_ptr<OutSlotBase> Create(const NodeSlotDefinition &definition)
     {
         auto p = new OutType;
         // std::stringstream ss;
         // ss << "##type:" << definition.name;
         p->Name = definition.name;
+        p->TargetType = T();
         // p->Format = ss.str();
         return std::shared_ptr<OutSlotBase>(p);
     }
@@ -81,6 +83,7 @@ public:
         // ImGui::ColorEdit3("##color", &Color.x);
     }
 };
+
 void OutSlotBase::_UpdatePinPosition(float padding)
 {
     GetPin()->Position = std::array<float, 2>{
@@ -88,5 +91,4 @@ void OutSlotBase::_UpdatePinPosition(float padding)
         Rect[1] + Rect[3] / 2};
 }
 
-
-}
+} // namespace plugnode
