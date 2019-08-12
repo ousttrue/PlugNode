@@ -8,13 +8,172 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-ImU32 NODE_COLOR = IM_COL32(60, 60, 60, 255);
-ImU32 NODE_HOVER_COLOR = IM_COL32(75, 75, 90, 255);
+const ImU32 GRID_COLOR = IM_COL32(200, 200, 200, 40);
+const ImU32 NODE_COLOR = IM_COL32(60, 60, 60, 255);
+const ImU32 NODE_HOVER_COLOR = IM_COL32(75, 75, 90, 255);
+const ImU32 PIN_COLOR = IM_COL32(150, 150, 150, 150);
+const ImU32 PIN_HOVER_COLOR = IM_COL32(150, 250, 150, 150);
+const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
+
+const float MIN_SCALING = 0.3f;
+const float MAX_SCALING = 2.0f;
+const float LINK_WIDTH = 3.0f;
+const float NODE_SLOT_RADIUS = 6.0f;
 
 namespace plugnode
 {
 
+static float Dot(const ImVec2 &v)
+{
+    return v.x * v.x + v.y * v.y;
+}
+
+class ContextImpl
+{
+#pragma region Canvas
+    ImVec2 m_scrolling = ImVec2(0.0f, 0.0f);
+    bool m_show_grid = true;
+    float m_scaling = 1.0f;
+
+    ImGuiStyle m_backup;
+    ImVec2 m_canvas_position;
+#pragma endregion
+
+public:
+    void BeginScaling()
+    {
+        m_backup = ImGui::GetStyle();
+        ImGui::GetStyle().ScaleAllSizes(m_scaling);
+        ImGui::SetWindowFontScale(m_scaling);
+        ImGui::PushItemWidth(100 * m_scaling);
+    }
+    void EndScaling()
+    {
+        ImGui::PopItemWidth();
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::GetStyle() = m_backup;
+    }
+
+    void ShowHeader()
+    {
+        ImGui::Text("Hold middle mouse button to scroll (%.2f,%.2f)", m_scrolling.x, m_scrolling.y);
+
+        ImGui::SameLine();
+        ImGui::Checkbox("Show grid", &m_show_grid);
+
+        ImGui::SameLine();
+        ImGui::PushItemWidth(-100);
+        ImGui::SliderFloat("zoom", &m_scaling, MIN_SCALING, MAX_SCALING, "%0.2f");
+    }
+
+    float GetScaling() const
+    {
+        return m_scaling;
+    }
+
+    void DrawGrid(ImDrawList *draw_list)
+    {
+        if (!m_show_grid)
+        {
+            return;
+        }
+
+        float GRID_SZ = 64.0f * m_scaling;
+        ImVec2 win_pos = ImGui::GetCursorScreenPos();
+        ImVec2 canvas_sz = ImGui::GetWindowSize();
+        for (float x = fmodf(m_scrolling.x, GRID_SZ); x < canvas_sz.x; x += GRID_SZ)
+        {
+            draw_list->AddLine(ImVec2(x, 0.0f) + win_pos, ImVec2(x, canvas_sz.y) + win_pos, GRID_COLOR);
+        }
+        for (float y = fmodf(m_scrolling.y, GRID_SZ); y < canvas_sz.y; y += GRID_SZ)
+        {
+            draw_list->AddLine(ImVec2(0.0f, y) + win_pos, ImVec2(canvas_sz.x, y) + win_pos, GRID_COLOR);
+        }
+    }
+
+    void BeginCanvas(ImDrawList *draw_list)
+    {
+        m_canvas_position = ImGui::GetCursorScreenPos();
+        DrawGrid(draw_list);
+    }
+
+    void EndCanvas()
+    {
+        // Zoom and Scroll
+        if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive())
+        {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+
+            if (ImGui::IsMouseDragging(2, 0.0f))
+            {
+                m_scrolling = m_scrolling + ImGui::GetIO().MouseDelta;
+            }
+
+            auto mouse = ImGui::GetIO().MousePos - m_canvas_position;
+            ImVec2 focus = (mouse - m_scrolling) / m_scaling;
+
+            auto io = ImGui::GetIO();
+            if (io.MouseWheel > 0)
+            {
+                m_scaling += 0.1f;
+            }
+            else if (io.MouseWheel < 0)
+            {
+                m_scaling -= 0.1f;
+            }
+            m_scaling = std::clamp(m_scaling, MIN_SCALING, MAX_SCALING);
+
+            auto new_mouse = m_scrolling + (focus * m_scaling);
+            m_scrolling += (mouse - new_mouse);
+        }
+    }
+
+    ImVec2 GetScrollingPosition() const
+    {
+        return m_canvas_position + m_scrolling;
+    }
+
+    float GetLinkWidth() const
+    {
+        return LINK_WIDTH * m_scaling;
+    }
+
+    ImVec2 GetNodePosition(const ImVec2 &pos) const
+    {
+        return GetScrollingPosition() + pos * m_scaling;
+    }
+
+    bool DrawPin(ImDrawList *draw_list, const ImVec2 &pos)
+    {
+        // auto pos = *(ImVec2 *)&GetPin()->Position;
+        auto mouse = ImGui::GetMousePos();
+        auto dot = Dot(pos - mouse);
+        auto r = NODE_SLOT_RADIUS * m_scaling;
+        auto isHover = dot <= r * r;
+        if (isHover)
+        {
+            // on mouse
+            draw_list->AddCircleFilled(pos, r, PIN_HOVER_COLOR);
+        }
+        else
+        {
+            draw_list->AddCircleFilled(pos, r, PIN_COLOR);
+        }
+        return isHover;
+    }
+};
+
 bool Context::s_popup = false;
+
+Context::Context()
+    : m_impl(new ContextImpl)
+{
+}
+
+Context::~Context()
+{
+    delete m_impl;
+}
 
 void Context::HoverInList(int id)
 {
@@ -58,9 +217,9 @@ ImU32 Context::GetBGColor(int m_id) const
     }
 }
 
-void Context::ProcessClick(const ImVec2 &offset,
-                           const NodeDefinitionManager *definitions,
-                           NodeScene *scene)
+void Context::ProcessClick(
+    const NodeDefinitionManager *definitions,
+    NodeScene *scene)
 {
     if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered() && ImGui::IsMouseClicked(1))
     {
@@ -115,21 +274,26 @@ void Context::ProcessClick(const ImVec2 &offset,
     s_popup = ImGui::BeginPopup("context_menu");
     if (s_popup)
     {
-        ImVec2 scene_pos = ImGui::GetMousePosOnOpeningCurrentPopup() - offset;
+        ImVec2 scene_pos = ImGui::GetMousePosOnOpeningCurrentPopup() - m_impl->GetScrollingPosition();
         if (m_node_selected != -1)
         {
             auto node = scene->GetFromId(m_node_selected);
             ImGui::Text("Node '%s'", node->Name.c_str());
             ImGui::Separator();
+            /*
             if (ImGui::MenuItem("Rename..", NULL, false, false))
             {
             }
-            if (ImGui::MenuItem("Delete", NULL, false, false))
+            */
+            if (ImGui::MenuItem("Delete", NULL))
             {
+                scene->Remove(node);
             }
+            /*
             if (ImGui::MenuItem("Copy", NULL, false, false))
             {
             }
+            */
         }
         else
         {
@@ -146,7 +310,7 @@ void Context::ProcessClick(const ImVec2 &offset,
     ImGui::PopStyleVar();
 }
 
-void Context::DrawLink(ImDrawList *draw_list, float width)
+void Context::DrawLink(ImDrawList *draw_list)
 {
     if (!m_activeSlot)
     {
@@ -160,7 +324,57 @@ void Context::DrawLink(ImDrawList *draw_list, float width)
         p1 + ImVec2(+50, 0),
         p2 + ImVec2(-50, 0),
         p2,
-        IM_COL32(200, 200, 100, 255), width);
+        IM_COL32(200, 200, 100, 255), m_impl->GetLinkWidth());
+}
+
+void Context::BeginCanvas(ImDrawList *draw_list)
+{
+    m_impl->BeginCanvas(draw_list);
+}
+
+void Context::EndCanvas()
+{
+    m_impl->EndCanvas();
+}
+
+float Context::GetScaling() const
+{
+    return m_impl->GetScaling();
+}
+
+void Context::ShowHeader()
+{
+    m_impl->ShowHeader();
+}
+
+void Context::BeginScaling()
+{
+    m_impl->BeginScaling();
+}
+
+void Context::EndScaling()
+{
+    m_impl->EndScaling();
+}
+
+std::array<float, 2> Context::GetNodePosition(float x, float y) const
+{
+    return *(std::array<float, 2> *)&m_impl->GetNodePosition(ImVec2(x, y));
+}
+
+float Context::GetLinkWidth() const
+{
+    return m_impl->GetLinkWidth();
+}
+
+bool Context::DrawPin(ImDrawList *draw_list, float x, float y)
+{
+    return m_impl->DrawPin(draw_list, ImVec2(x, y));
+}
+
+float Context::GetNodeHorizontalPadding() const
+{
+    return NODE_WINDOW_PADDING.x;
 }
 
 } // namespace plugnode

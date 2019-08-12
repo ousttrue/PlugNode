@@ -18,7 +18,7 @@ node graph editor ?
 * [x] zoom size
 * [x] eval graph
 * [x] accept
-* [ ] remove node
+* [x] remove node
 * [ ] shader generator
 * [ ] type型
 * [ ] slot id

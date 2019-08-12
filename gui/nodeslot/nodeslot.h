@@ -8,6 +8,10 @@ namespace plugnode
 {
 
 class NodeSlotBase;
+class Node;
+class Context;
+struct NodeSlotDefinition;
+
 struct NodePin
 {
     std::array<float, 2> Position;
@@ -15,16 +19,13 @@ struct NodePin
     std::weak_ptr<NodeSlotBase> Slot;
 };
 
-class Node;
-struct NodeSlotDefinition;
 class NodeSlotBase
 {
     std::shared_ptr<NodePin> Pin;
 
 protected:
-    virtual std::array<float, 2> _OnImGui(float scale) = 0;
-    void _DrawPin(ImDrawList *draw_list, float scale);
-    virtual void _UpdatePinPosition() = 0;
+    virtual std::array<float, 2> _OnImGui(Context *context) = 0;
+    virtual void _UpdatePinPosition(float padding) = 0;
     NodeSlotBase();
     template <typename T>
     T *GetPinValue()
@@ -38,7 +39,7 @@ public:
     const std::shared_ptr<NodePin> &GetPin() const { return Pin; }
     std::string Name;
     std::array<float, 4> Rect;
-    void ImGui(ImDrawList *draw_list, float scale);
+    void ImGui(ImDrawList *draw_list, Context *context);
 };
 
 enum class SlotType
@@ -51,7 +52,7 @@ enum class SlotType
 class OutSlotBase : public NodeSlotBase
 {
 protected:
-    void _UpdatePinPosition() override;
+    void _UpdatePinPosition(float padding) override;
 
 public:
     static std::shared_ptr<OutSlotBase> Create(const NodeSlotDefinition &socket, SlotType slotType);
@@ -61,10 +62,10 @@ class InSlotBase : public NodeSlotBase
 {
 protected:
     std::weak_ptr<NodePin> Src;
-    void _UpdatePinPosition() override;
+    void _UpdatePinPosition(float padding) override;
 
 public:
-    void DrawLink(ImDrawList *draw_list, float width);
+    void DrawLink(ImDrawList *draw_list, Context *context);
     virtual bool Acceptable(const std::shared_ptr<OutSlotBase> &src) = 0;
     virtual bool Link(const std::shared_ptr<OutSlotBase> &src) = 0;
     void Disconnect()

@@ -79,18 +79,18 @@ void Node::DrawLeftPanel(Context *context) const
     ImGui::PopID();
 }
 
-void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling)
+void Node::Process(ImDrawList *draw_list, Context *context)
 {
     ImGui::PushID(m_id);
 
     // node左上
-    ImVec2 node_rect_min = offset + *(ImVec2 *)&m_pos * scaling;
+    auto node_rect_min = *(ImVec2 *)&context->GetNodePosition(m_pos[0], m_pos[1]);
 
     bool old_any_active = ImGui::IsAnyItemActive();
 
     // Display node contents first
     // ImGui::PushItemWidth(80 * scaling);
-    _DrawSlots(draw_list, node_rect_min, scaling);
+    _DrawSlots(draw_list, node_rect_min, context);
     // ImGui::PopItemWidth();
 
     // Save the size of what we have emitted and whether any of the widgets are being used
@@ -122,6 +122,7 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
         // move
         if (node_moving_active && ImGui::IsMouseDragging(0))
         {
+            auto scaling = context->GetScaling();
             m_pos[0] += ImGui::GetIO().MouseDelta[0] / scaling;
             m_pos[1] += ImGui::GetIO().MouseDelta[1] / scaling;
         }
@@ -134,7 +135,7 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImGui::PopID();
 }
 
-void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, float scaling)
+void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, Context *context)
 {
     draw_list->ChannelsSetCurrent(1); // Foreground
     ImGui::SetCursorScreenPos(node_rect_min + NODE_WINDOW_PADDING);
@@ -150,14 +151,14 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, float 
                 auto origin = ImGui::GetCursorScreenPos();
                 for (auto &in : m_inslots)
                 {
-                    in->ImGui(draw_list, scaling);
+                    in->ImGui(draw_list, context);
                 }
 
                 ImGui::SetCursorScreenPos(ImVec2(origin.x + m_inslots[0]->Rect[2] + 8, origin.y));
                 ImGui::BeginGroup(); // Lock horizontal position
                 for (auto &out : m_outslots)
                 {
-                    out->ImGui(draw_list, scaling);
+                    out->ImGui(draw_list, context);
                 }
                 ImGui::EndGroup();
             }
@@ -165,7 +166,7 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, float 
             {
                 for (auto &in : m_inslots)
                 {
-                    in->ImGui(draw_list, scaling);
+                    in->ImGui(draw_list, context);
                 }
             }
         }
@@ -175,7 +176,7 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, float 
             {
                 for (auto &out : m_outslots)
                 {
-                    out->ImGui(draw_list, scaling);
+                    out->ImGui(draw_list, context);
                 }
             }
             else

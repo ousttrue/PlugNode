@@ -8,6 +8,7 @@ namespace plugnode
 {
 
 class OutSlotBase;
+class ContextImpl;
 class Context
 {
     bool m_open_context_menu = false;
@@ -16,7 +17,12 @@ class Context
     int m_node_selected = -1;
     std::shared_ptr<OutSlotBase> m_activeSlot;
 
+    ContextImpl *m_impl = nullptr;
+
 public:
+    Context();
+    ~Context();
+
     static bool s_popup;
     void NewFrame()
     {
@@ -35,10 +41,20 @@ public:
     bool IsHovered(int ID) const;
     bool IsSelected(int ID) const;
     uint32_t GetBGColor(int m_id) const;
-    void ProcessClick(const ImVec2 &offset,
-                      const class NodeDefinitionManager *definitions,
-                      class NodeScene *scene);
-    void DrawLink(ImDrawList *draw_list, float width);
+    void ProcessClick(
+        const class NodeDefinitionManager *definitions,
+        class NodeScene *scene);
+    void DrawLink(ImDrawList *draw_list);
+    bool DrawPin(ImDrawList *draw_list, float x, float y);
+    float GetLinkWidth()const;
+    float GetScaling() const;
+    void ShowHeader();
+    void BeginCanvas(ImDrawList *draw_list);
+    void EndCanvas();
+    void BeginScaling();
+    void EndScaling();
+    std::array<float, 2> GetNodePosition(float x, float y) const;
+    float GetNodeHorizontalPadding()const;
 };
 
 } // namespace plugnode

@@ -10,23 +10,17 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-const float MIN_SCALING = 0.3f;
-const float MAX_SCALING = 2.0f;
-const ImU32 GRID_COLOR = IM_COL32(200, 200, 200, 40);
 
 namespace plugnode
 {
 
 class NodeCanvasImpl
 {
-    float m_scaling = 1.0f;
-    ImVec2 m_scrolling = ImVec2(0.0f, 0.0f);
-    bool m_show_grid = true;
 
 public:
     void Show(Context *context, const NodeDefinitionManager *definitions, NodeScene *scene)
     {
-        ShowHeader();
+        context->ShowHeader();
 
         // Create our child canvas
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
@@ -34,16 +28,13 @@ public:
         ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, IM_COL32(60, 60, 70, 200));
         {
             ImGui::BeginChild("scrolling_region", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
-            ImGui::PushItemWidth(120.0f * m_scaling);
+            // ImGui::PushItemWidth(120.0f * m_scaling);
 
-            auto backup = ImGui::GetStyle();
-            ImGui::GetStyle().ScaleAllSizes(m_scaling);
-            ImGui::SetWindowFontScale(m_scaling);
+            context->BeginScaling();
             ShowCanvas(context, definitions, scene);
-            ImGui::SetWindowFontScale(1.0f);
-            ImGui::GetStyle() = backup;
+            context->EndScaling();
 
-            ImGui::PopItemWidth();
+            // ImGui::PopItemWidth();
             ImGui::EndChild();
         }
         ImGui::PopStyleColor();
@@ -51,50 +42,16 @@ public:
     }
 
 private:
-    void ShowHeader()
-    {
-        ImGui::Text("Hold middle mouse button to scroll (%.2f,%.2f)", m_scrolling.x, m_scrolling.y);
 
-        ImGui::SameLine();
-        ImGui::Checkbox("Show grid", &m_show_grid);
-
-        ImGui::SameLine();
-        ImGui::PushItemWidth(-100);
-        ImGui::SliderFloat("zoom", &m_scaling, MIN_SCALING, MAX_SCALING, "%0.2f");
-    }
-
-    void DrawGrid(ImDrawList *draw_list, const ImVec2 &scrolling)
-    {
-        float GRID_SZ = 64.0f * m_scaling;
-        ImVec2 win_pos = ImGui::GetCursorScreenPos();
-        ImVec2 canvas_sz = ImGui::GetWindowSize();
-        for (float x = fmodf(scrolling.x, GRID_SZ); x < canvas_sz.x; x += GRID_SZ)
-        {
-            draw_list->AddLine(ImVec2(x, 0.0f) + win_pos, ImVec2(x, canvas_sz.y) + win_pos, GRID_COLOR);
-        }
-        for (float y = fmodf(scrolling.y, GRID_SZ); y < canvas_sz.y; y += GRID_SZ)
-        {
-            draw_list->AddLine(ImVec2(0.0f, y) + win_pos, ImVec2(canvas_sz.x, y) + win_pos, GRID_COLOR);
-        }
-    }
 
     ///
     /// Canvas
     ///
     void ShowCanvas(Context *context, const NodeDefinitionManager *definitions, NodeScene *scene)
     {
-        auto canvasPosition = ImGui::GetCursorScreenPos();
-
-        // スクロールを加味したcanvasの原点
-        ImVec2 offset = ImGui::GetCursorScreenPos() + m_scrolling;
-
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
 
-        // Display grid
-        if (m_show_grid)
-        {
-            DrawGrid(draw_list, m_scrolling);
-        }
+        context->BeginCanvas(draw_list);
 
         {
             draw_list->ChannelsSplit(2);
@@ -107,17 +64,17 @@ private:
             {
                 for (auto &inSlot : node->m_inslots)
                 {
-                    inSlot->DrawLink(draw_list, 3.0f * m_scaling);
+                    inSlot->DrawLink(draw_list, context);
                 }
             }
 
-            context->DrawLink(draw_list, 3.0f * m_scaling);
+            context->DrawLink(draw_list);
 
             // Display nodes
             for (auto &node : scene->m_nodes)
             {
                 // move, draw
-                node->Process(draw_list, offset, context, m_scaling);
+                node->Process(draw_list, context);
             }
             draw_list->ChannelsMerge();
         }
@@ -132,35 +89,10 @@ private:
         // }
 
         // Open context menu
-        context->ProcessClick(offset, definitions, scene);
+        context->ProcessClick(definitions, scene);
 
-        // Zoom and Scroll
-        if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive())
-        {
-            ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+        context->EndCanvas();
 
-            if (ImGui::IsMouseDragging(2, 0.0f))
-            {
-                m_scrolling = m_scrolling + ImGui::GetIO().MouseDelta;
-            }
-
-            auto mouse = ImGui::GetIO().MousePos - canvasPosition;
-            ImVec2 focus = (mouse - m_scrolling) / m_scaling;
-
-            auto io = ImGui::GetIO();
-            if (io.MouseWheel > 0)
-            {
-                m_scaling += 0.1f;
-            }
-            else if (io.MouseWheel < 0)
-            {
-                m_scaling -= 0.1f;
-            }
-            m_scaling = std::clamp(m_scaling, MIN_SCALING, MAX_SCALING);
-
-            auto new_mouse = m_scrolling + (focus * m_scaling);
-            m_scrolling += (mouse - new_mouse);
-        }
     }
 };
 

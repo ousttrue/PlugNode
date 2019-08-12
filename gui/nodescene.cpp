@@ -31,6 +31,16 @@ std::shared_ptr<Node> NodeScene::CreateNode(const std::shared_ptr<NodeDefinition
     return node;
 }
 
+void NodeScene::Remove(const std::shared_ptr<Node> &node)
+{
+    auto found = std::find(m_nodes.begin(), m_nodes.end(), node);
+    if(found==m_nodes.end())
+    {
+        return;
+    }
+    m_nodes.erase(found);
+}
+
 std::shared_ptr<Node> NodeScene::GetFromId(int id) const
 {
     for (auto &node : m_nodes)

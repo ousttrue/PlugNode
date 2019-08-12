@@ -5,16 +5,10 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-#include <sstream>
-
-const float NODE_SLOT_RADIUS = 6.0f;
-const float SQ_NODE_SLOT_RADIUS = NODE_SLOT_RADIUS * NODE_SLOT_RADIUS;
-const ImVec2 NODE_WINDOW_PADDING(8.0f, 8.0f);
-const auto PIN_COLOR = IM_COL32(150, 150, 150, 150);
-const auto PIN_HOVER_COLOR = IM_COL32(150, 250, 150, 150);
-
 #include "nodeslot_out.h"
 #include "nodeslot_in.h"
+
+#include <sstream>
 
 namespace plugnode
 {
@@ -24,40 +18,21 @@ NodeSlotBase::NodeSlotBase()
 {
 }
 
-void NodeSlotBase::ImGui(ImDrawList *draw_list, float scale)
+void NodeSlotBase::ImGui(ImDrawList *draw_list, Context *context)
 {
     auto pos = ImGui::GetCursorScreenPos();
     Rect[0] = pos.x;
     Rect[1] = pos.y;
-    auto size = _OnImGui(scale);
+    auto size = _OnImGui(context);
     Rect[2] = size[0];
     Rect[3] = size[1];
-    _UpdatePinPosition();
-    _DrawPin(draw_list, scale);
+    _UpdatePinPosition(context->GetNodeHorizontalPadding());
+
+    auto pin = GetPin()->Position;
+    IsHover = context->DrawPin(draw_list, pin[0], pin[1]);
 }
 
-static float Dot(const ImVec2 &v)
-{
-    return v.x * v.x + v.y * v.y;
-}
 
-void NodeSlotBase::_DrawPin(ImDrawList *draw_list, float scaling)
-{
-    auto pos = *(ImVec2 *)&GetPin()->Position;
-    auto mouse = ImGui::GetMousePos();
-    auto dot = Dot(pos - mouse);
-    auto r = NODE_SLOT_RADIUS * scaling;
-    IsHover = dot <= r * r;
-    if (IsHover)
-    {
-        // on mouse
-        draw_list->AddCircleFilled(pos, r, PIN_HOVER_COLOR);
-    }
-    else
-    {
-        draw_list->AddCircleFilled(pos, r, PIN_COLOR);
-    }
-}
 
 std::shared_ptr<OutSlotBase> OutSlotBase::Create(const NodeSlotDefinition &definition, SlotType slotType)
 {

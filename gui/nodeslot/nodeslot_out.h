@@ -15,7 +15,7 @@ public:
 class OutType : public OutSlot<std::string>
 {
 protected:
-    std::array<float, 2> _OnImGui(float scale) override
+    std::array<float, 2> _OnImGui(Context *context) override
     {
         ImGui::LabelText(Name.c_str(), "" /*"##value"*/
                                           //, Format.c_str()
@@ -38,7 +38,7 @@ public:
 class OutFloatValue : public OutSlot<float>
 {
 protected:
-    std::array<float, 2> _OnImGui(float scale) override
+    std::array<float, 2> _OnImGui(Context *context) override
     {
         ImGui::InputFloat(Name.c_str() /*"##value"*/,
                           GetPinValue<float>()
@@ -54,7 +54,7 @@ public:
     std::string Format;
     float Min = 0;
     float Max = 1.0f;
-    std::array<float, 2> _OnImGui(float scale) override
+    std::array<float, 2> _OnImGui(Context *context) override
     {
         ImGui::SliderFloat(Name.c_str() /*"##value"*/,
                            GetPinValue<float>(), Min, Max
@@ -71,7 +71,7 @@ public:
     // std::string Format;
     // float Min = 0;
     // float Max = 1.0f;
-    std::array<float, 2> _OnImGui(float scale) override
+    std::array<float, 2> _OnImGui(Context *context) override
     {
         ImGui::ColorPicker4(Name.c_str() /*"##value"*/,
                             GetPinValue<std::array<float, 4>>()->data()
@@ -81,10 +81,10 @@ public:
         // ImGui::ColorEdit3("##color", &Color.x);
     }
 };
-void OutSlotBase::_UpdatePinPosition()
+void OutSlotBase::_UpdatePinPosition(float padding)
 {
     GetPin()->Position = std::array<float, 2>{
-        Rect[0] + Rect[2] + NODE_WINDOW_PADDING.x,
+        Rect[0] + Rect[2] + padding,
         Rect[1] + Rect[3] / 2};
 }
 

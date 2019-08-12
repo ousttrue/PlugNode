@@ -1,5 +1,6 @@
 #pragma once
 #include "nodeslot.h"
+#include "context.h"
 #include <memory>
 
 namespace plugnode
@@ -28,7 +29,7 @@ std::shared_ptr<Node> InSlotBase::GetSrcNode()
     return node;
 }
 
-void InSlotBase::DrawLink(ImDrawList *draw_list, float width)
+void InSlotBase::DrawLink(ImDrawList *draw_list, Context *context)
 {
     auto src = Src.lock();
     if (!src)
@@ -44,7 +45,7 @@ void InSlotBase::DrawLink(ImDrawList *draw_list, float width)
         p1 + ImVec2(+50, 0),
         p2 + ImVec2(-50, 0),
         p2,
-        IM_COL32(200, 200, 100, 255), width);
+        IM_COL32(200, 200, 100, 255), context->GetLinkWidth());
 }
 
 template <typename T>
@@ -81,7 +82,7 @@ public:
 class InType : public InSlot<std::string>
 {
 public:
-    std::array<float, 2> _OnImGui(float scale) override
+    std::array<float, 2> _OnImGui(Context *context) override
     {
         ImGui::Text(Name.c_str());
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
@@ -123,7 +124,7 @@ template <typename T>
 class InLabelSlot : public InSlot<T>
 {
 public:
-    std::array<float, 2> _OnImGui(float scale) override
+    std::array<float, 2> _OnImGui(Context *context) override
     {
         ImGui::Text(Name.c_str());
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
@@ -133,7 +134,7 @@ public:
 class InFloatValue : public InSlot<float>
 {
 public:
-    std::array<float, 2> _OnImGui(float scale) override
+    std::array<float, 2> _OnImGui(Context *context) override
     {
         ImGui::InputFloat(Name.c_str() /*"##value"*/,
                           GetPinValue<float>()
@@ -143,10 +144,10 @@ public:
     }
 };
 
-void InSlotBase::_UpdatePinPosition()
+void InSlotBase::_UpdatePinPosition(float padding)
 {
     GetPin()->Position = std::array<float, 2>{
-        Rect[0] - NODE_WINDOW_PADDING.x,
+        Rect[0] - padding,
         Rect[1] + Rect[3] / 2};
 }
 
