@@ -38,20 +38,21 @@ static float Dot(const ImVec2 &v)
 {
     return v.x * v.x + v.y * v.y;
 }
-void NodeSlotBase::_DrawPin(ImDrawList *draw_list, float scale)
+void NodeSlotBase::_DrawPin(ImDrawList *draw_list, float scaling)
 {
     auto pos = *(ImVec2 *)&GetPin()->Position;
     auto mouse = ImGui::GetMousePos();
     auto dot = Dot(pos - mouse);
-    IsHover = dot <= SQ_NODE_SLOT_RADIUS;
+    auto r = NODE_SLOT_RADIUS * scaling;
+    IsHover = dot <= r * r;
     if (IsHover)
     {
         // on mouse
-        draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, PIN_HOVER_COLOR);
+        draw_list->AddCircleFilled(pos, r, PIN_HOVER_COLOR);
     }
     else
     {
-        draw_list->AddCircleFilled(pos, NODE_SLOT_RADIUS, PIN_COLOR);
+        draw_list->AddCircleFilled(pos, r, PIN_COLOR);
     }
 }
 
@@ -71,8 +72,8 @@ class OutType : public OutSlot<std::string>
 protected:
     std::array<float, 2> _OnImGui(float scale) override
     {
-        ImGui::LabelText(Name.c_str(), "%s", Name.c_str() /*"##value"*/
-                                 //, Format.c_str()
+        ImGui::LabelText(Name.c_str(), "" /*"##value"*/
+                                          //, Format.c_str()
         );
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
     }
