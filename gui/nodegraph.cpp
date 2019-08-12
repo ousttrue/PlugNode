@@ -2,7 +2,7 @@
 #include "context.h"
 #include "node.h"
 #include "nodescene.h"
-#include "nodecanvas.h"
+#include "nodeslot/nodeslot.h"
 #include <plog/Log.h>
 #include <vector>
 
@@ -25,7 +25,7 @@ namespace plugnode
 class NodeGraphImpl
 {
     Context m_context;
-    NodeCanvas m_canvas;
+    // NodeCanvas m_canvas;
 
 public:
     NodeGraphImpl()
@@ -53,7 +53,44 @@ public:
             // 右隣に描画
             ImGui::SameLine();
             ImGui::BeginGroup();
-            m_canvas.Show(&m_context, definitions, scene);
+            {
+                m_context.ShowHeader();
+
+                // Create our child canvas
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+                ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, IM_COL32(60, 60, 70, 200));
+                {
+                    ImGui::BeginChild("scrolling_region", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
+                    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+                    m_context.BeginCanvas(draw_list);
+                    {
+                        // Display links
+                        draw_list->ChannelsSetCurrent(0);
+                        for (auto &node : scene->m_nodes)
+                        {
+                            for (auto &inSlot : node->m_inslots)
+                            {
+                                inSlot->DrawLink(draw_list, &m_context);
+                            }
+                        }
+                        m_context.DrawLink(draw_list);
+
+                        // Display nodes
+                        for (auto &node : scene->m_nodes)
+                        {
+                            // move, draw
+                            node->Process(draw_list, &m_context);
+                        }
+                        // Open context menu
+                        m_context.ProcessClick(definitions, scene);
+                    }
+                    m_context.EndCanvas(draw_list);
+                    ImGui::EndChild();
+                }
+                ImGui::PopStyleColor();
+                ImGui::PopStyleVar(2);
+            }
             ImGui::EndGroup();
         }
     }
@@ -73,7 +110,7 @@ void NodeGraph::ImGui(NodeDefinitionManager *definitions,
                       NodeScene *scene)
 {
     static bool s_show = true;
-    if (ImGui::Begin("Example: Custom Node Graph", &s_show))
+    if (ImGui::Begin("PlugNode", &s_show))
     {
         m_impl->Show(definitions, scene);
     }

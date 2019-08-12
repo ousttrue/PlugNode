@@ -50,9 +50,7 @@ public:
     float GetScaling() const;
     void ShowHeader();
     void BeginCanvas(ImDrawList *draw_list);
-    void EndCanvas();
-    void BeginScaling();
-    void EndScaling();
+    void EndCanvas(ImDrawList *draw_list);
     std::array<float, 2> GetNodePosition(float x, float y) const;
     float GetNodeHorizontalPadding()const;
 };

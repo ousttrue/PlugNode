@@ -21,6 +21,7 @@ node graph editor ?
 * [x] remove node
 * [ ] shader generator
 * [x] type型
+* [ ] slot variation inheritance to member
 * [ ] slot id
 * [ ] context singleton
 * [ ] save/load graph scene

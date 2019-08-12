@@ -93,6 +93,8 @@ public:
 
     void BeginCanvas(ImDrawList *draw_list)
     {
+        BeginScaling();
+
         m_canvas_position = ImGui::GetCursorScreenPos();
         DrawGrid(draw_list);
     }
@@ -126,6 +128,8 @@ public:
             auto new_mouse = m_scrolling + (focus * m_scaling);
             m_scrolling += (mouse - new_mouse);
         }
+
+        EndScaling();
     }
 
     ImVec2 GetScrollingPosition() const
@@ -330,10 +334,14 @@ void Context::DrawLink(ImDrawList *draw_list)
 void Context::BeginCanvas(ImDrawList *draw_list)
 {
     m_impl->BeginCanvas(draw_list);
+    draw_list->ChannelsSplit(2);
+    // 0: Node contents
+    // 1: Others(node rect, link curve...)
 }
 
-void Context::EndCanvas()
+void Context::EndCanvas(ImDrawList *draw_list)
 {
+    draw_list->ChannelsMerge();
     m_impl->EndCanvas();
 }
 
@@ -345,16 +353,6 @@ float Context::GetScaling() const
 void Context::ShowHeader()
 {
     m_impl->ShowHeader();
-}
-
-void Context::BeginScaling()
-{
-    m_impl->BeginScaling();
-}
-
-void Context::EndScaling()
-{
-    m_impl->EndScaling();
 }
 
 std::array<float, 2> Context::GetNodePosition(float x, float y) const
