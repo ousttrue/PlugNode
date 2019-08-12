@@ -34,7 +34,7 @@ public:
     void Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context, float scaling);
 
 private:
-    void _DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min);
+    void _DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, float scaling);
 };
 
 } // namespace plugnode

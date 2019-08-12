@@ -17,6 +17,8 @@ node graph editor ?
 * [x] in click
 * [x] zoom size
 * [x] eval graph
+* [ ] slot id
+* [ ] accept
 * [ ] remove node
 * [ ] save/load graph scene
 * [ ] shader generator

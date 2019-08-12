@@ -22,23 +22,23 @@ NodeSlotBase::NodeSlotBase()
 {
 }
 
-void NodeSlotBase::ImGui(ImDrawList *draw_list)
+void NodeSlotBase::ImGui(ImDrawList *draw_list, float scale)
 {
     auto pos = ImGui::GetCursorScreenPos();
     Rect[0] = pos.x;
     Rect[1] = pos.y;
-    auto size = _OnImGui();
+    auto size = _OnImGui(scale);
     Rect[2] = size[0];
     Rect[3] = size[1];
     _UpdatePinPosition();
-    _DrawPin(draw_list);
+    _DrawPin(draw_list, scale);
 }
 
 static float Dot(const ImVec2 &v)
 {
     return v.x * v.x + v.y * v.y;
 }
-void NodeSlotBase::_DrawPin(ImDrawList *draw_list)
+void NodeSlotBase::_DrawPin(ImDrawList *draw_list, float scale)
 {
     auto pos = *(ImVec2 *)&GetPin()->Position;
     auto mouse = ImGui::GetMousePos();
@@ -66,10 +66,33 @@ public:
     }
 };
 
+class OutType : public OutSlot<std::string>
+{
+protected:
+    std::array<float, 2> _OnImGui(float scale) override
+    {
+        ImGui::LabelText(Name.c_str(), "%s", Name.c_str() /*"##value"*/
+                                 //, Format.c_str()
+        );
+        return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+    }
+
+public:
+    static std::shared_ptr<OutSlotBase> Create(const NodeSlotDefinition &definition)
+    {
+        auto p = new OutType;
+        // std::stringstream ss;
+        // ss << "##type:" << definition.name;
+        p->Name = definition.name;
+        // p->Format = ss.str();
+        return std::shared_ptr<OutSlotBase>(p);
+    }
+};
+
 class OutFloatValue : public OutSlot<float>
 {
 protected:
-    std::array<float, 2> _OnImGui() override
+    std::array<float, 2> _OnImGui(float scale) override
     {
         ImGui::InputFloat(Name.c_str() /*"##value"*/,
                           GetPinValue<float>()
@@ -85,7 +108,7 @@ public:
     std::string Format;
     float Min = 0;
     float Max = 1.0f;
-    std::array<float, 2> _OnImGui() override
+    std::array<float, 2> _OnImGui(float scale) override
     {
         ImGui::SliderFloat(Name.c_str() /*"##value"*/,
                            GetPinValue<float>(), Min, Max
@@ -96,6 +119,22 @@ public:
     }
 };
 
+class OutFloat4Color : public OutSlot<std::array<float, 4>>
+{
+public:
+    // std::string Format;
+    // float Min = 0;
+    // float Max = 1.0f;
+    std::array<float, 2> _OnImGui(float scale) override
+    {
+        ImGui::ColorPicker4(Name.c_str() /*"##value"*/,
+                            GetPinValue<std::array<float, 4>>()->data()
+                            //, Format.c_str()
+        );
+        return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+        // ImGui::ColorEdit3("##color", &Color.x);
+    }
+};
 void OutSlotBase::_UpdatePinPosition()
 {
     GetPin()->Position = std::array<float, 2>{
@@ -103,16 +142,19 @@ void OutSlotBase::_UpdatePinPosition()
         Rect[1] + Rect[3] / 2};
 }
 
-std::shared_ptr<OutSlotBase> OutSlotBase::CreateValue(const NodeSlotDefinition &socket)
+std::shared_ptr<OutSlotBase> OutSlotBase::CreateValue(const NodeSlotDefinition &definition)
 {
-    if (socket.type == "float")
+    if (definition.type == "float")
     {
         auto p = new OutFloatValue;
-        std::stringstream ss;
-        ss << "##" << socket.name;
-        p->Name = ss.str();
+        // std::stringstream ss;
+        p->Name = definition.name;
         // p->Format = ss.str();
         return std::shared_ptr<OutSlotBase>(p);
+    }
+    else if (definition.type == "type")
+    {
+        return OutType::Create(definition);
     }
     else
     {
@@ -120,16 +162,26 @@ std::shared_ptr<OutSlotBase> OutSlotBase::CreateValue(const NodeSlotDefinition &
     }
 }
 
-std::shared_ptr<OutSlotBase> OutSlotBase::CreateGui(const NodeSlotDefinition &socket)
+std::shared_ptr<OutSlotBase> OutSlotBase::CreateGui(const NodeSlotDefinition &definition)
 {
-    if (socket.type == "float")
+    if (definition.type == "float")
     {
         auto p = new OutFloatSlider;
         std::stringstream ss;
-        ss << socket.name << " %.2f";
-        p->Name = socket.name;
+        ss << definition.name << " %.2f";
+        p->Name = definition.name;
         p->Format = ss.str();
         return std::shared_ptr<OutSlotBase>(p);
+    }
+    if (definition.type == "float4")
+    {
+        auto p = new OutFloat4Color;
+        p->Name = definition.name;
+        return std::shared_ptr<OutSlotBase>(p);
+    }
+    else if (definition.type == "type")
+    {
+        return OutType::Create(definition);
     }
     else
     {
@@ -202,11 +254,31 @@ public:
     }
 };
 
+class InType : public InSlot<std::string>
+{
+public:
+    std::array<float, 2> _OnImGui(float scale) override
+    {
+        ImGui::Text(Name.c_str());
+        return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
+    }
+
+    static std::shared_ptr<InSlotBase> Create(const NodeSlotDefinition &definition)
+    {
+        auto p = new InType;
+        // std::stringstream ss;
+        // ss << "##type:" << definition.name;
+        p->Name = definition.name;
+        // p->Format = ss.str();
+        return std::shared_ptr<InSlotBase>(p);
+    }
+};
+
 template <typename T>
 class InLabelSlot : public InSlot<T>
 {
 public:
-    std::array<float, 2> _OnImGui() override
+    std::array<float, 2> _OnImGui(float scale) override
     {
         ImGui::Text(Name.c_str());
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
@@ -216,7 +288,7 @@ public:
 class InFloatValue : public InSlot<float>
 {
 public:
-    std::array<float, 2> _OnImGui() override
+    std::array<float, 2> _OnImGui(float scale) override
     {
         ImGui::InputFloat(Name.c_str() /*"##value"*/,
                           GetPinValue<float>()
@@ -233,16 +305,20 @@ void InSlotBase::_UpdatePinPosition()
         Rect[1] + Rect[3] / 2};
 }
 
-std::shared_ptr<InSlotBase> InSlotBase::CreateValue(const NodeSlotDefinition &socket)
+std::shared_ptr<InSlotBase> InSlotBase::CreateValue(const NodeSlotDefinition &definition)
 {
-    if (socket.type == "float")
+    if (definition.type == "float")
     {
         auto p = new InFloatValue;
         std::stringstream ss;
-        ss << "##" << socket.name;
+        ss << "##" << definition.name;
         p->Name = ss.str();
         // p->Format = ss.str();
         return std::shared_ptr<InSlotBase>(p);
+    }
+    else if (definition.type == "type")
+    {
+        return InType::Create(definition);
     }
     else
     {

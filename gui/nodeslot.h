@@ -22,8 +22,8 @@ class NodeSlotBase
     std::shared_ptr<NodePin> Pin;
 
 protected:
-    virtual std::array<float, 2> _OnImGui() = 0;
-    void _DrawPin(ImDrawList *draw_list);
+    virtual std::array<float, 2> _OnImGui(float scale) = 0;
+    void _DrawPin(ImDrawList *draw_list, float scale);
     virtual void _UpdatePinPosition() = 0;
     NodeSlotBase();
     template <typename T>
@@ -38,7 +38,7 @@ public:
     const std::shared_ptr<NodePin> &GetPin() const { return Pin; }
     std::string Name;
     std::array<float, 4> Rect;
-    void ImGui(ImDrawList *draw_list);
+    void ImGui(ImDrawList *draw_list, float scale);
 };
 
 class OutSlotBase : public NodeSlotBase

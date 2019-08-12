@@ -89,9 +89,9 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     bool old_any_active = ImGui::IsAnyItemActive();
 
     // Display node contents first
-    ImGui::PushItemWidth(80 * scaling);
-    _DrawSlots(draw_list, node_rect_min);
-    ImGui::PopItemWidth();
+    // ImGui::PushItemWidth(80 * scaling);
+    _DrawSlots(draw_list, node_rect_min, scaling);
+    // ImGui::PopItemWidth();
 
     // Save the size of what we have emitted and whether any of the widgets are being used
     bool node_widgets_active = (!old_any_active && ImGui::IsAnyItemActive());
@@ -134,7 +134,7 @@ void Node::Process(ImDrawList *draw_list, const ImVec2 &offset, Context *context
     ImGui::PopID();
 }
 
-void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min)
+void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, float scaling)
 {
     draw_list->ChannelsSetCurrent(1); // Foreground
     ImGui::SetCursorScreenPos(node_rect_min + NODE_WINDOW_PADDING);
@@ -150,14 +150,14 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min)
                 auto origin = ImGui::GetCursorScreenPos();
                 for (auto &in : m_inslots)
                 {
-                    in->ImGui(draw_list);
+                    in->ImGui(draw_list, scaling);
                 }
 
                 ImGui::SetCursorScreenPos(ImVec2(origin.x + m_inslots[0]->Rect[2] + 8, origin.y));
                 ImGui::BeginGroup(); // Lock horizontal position
                 for (auto &out : m_outslots)
                 {
-                    out->ImGui(draw_list);
+                    out->ImGui(draw_list, scaling);
                 }
                 ImGui::EndGroup();
             }
@@ -165,7 +165,7 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min)
             {
                 for (auto &in : m_inslots)
                 {
-                    in->ImGui(draw_list);
+                    in->ImGui(draw_list, scaling);
                 }
             }
         }
@@ -175,7 +175,7 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min)
             {
                 for (auto &out : m_outslots)
                 {
-                    out->ImGui(draw_list);
+                    out->ImGui(draw_list, scaling);
                 }
             }
             else
