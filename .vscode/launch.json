@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/app/plugnode.exe",
             "args": [
-                "plugnode.lua"
+                "scripts/plugnode.lua"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
