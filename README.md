@@ -21,10 +21,12 @@ node graph editor ?
 * [x] remove node
 * [ ] shader generator
 * [x] type型
+* [ ] graph is updated
 * [ ] slot variation inheritance to member
 * [ ] slot id
 * [ ] context singleton
 * [ ] save/load graph scene
+* [ ] perilune::MetaMethod(value, pointer, shared_ptr, __tostring)
 
 ## memo
 
@@ -72,4 +74,4 @@ pin|in slot|       |
 
 1. NewFrame
 2. OutNodeに値をセット
-3. InNodeから逆向きにノードを辿って、深いところから値を解決する
+3. InNodeから逆向きにノードを辿る

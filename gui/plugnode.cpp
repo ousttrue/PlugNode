@@ -133,6 +133,7 @@ void lua_require_plugnode(lua_State *L)
 
     static perilune::UserType<std::shared_ptr<plugnode::Node>> node;
     node
+        // .MetaMethod(perilune::MetaKey::__tostring, [](plugnode::Node *p) { return p->Name; })
         .MetaIndexDispatcher([](auto d) {
             d->Getter("is_dst", [](plugnode::Node *node) {
                 return node->m_outslots.empty();

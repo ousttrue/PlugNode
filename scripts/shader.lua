@@ -1,10 +1,8 @@
-function eval_graph()
-end
-
 ------------------------------------------------------------------------------
 -- definition
 ------------------------------------------------------------------------------
 local definitions = plugnode.definition_manager.new()
+local node_definitions = {}
 function createDefinition(name, inputs, outputs)
     local node = definitions.create(name)
     for i, p in ipairs(inputs) do
@@ -17,7 +15,7 @@ function createDefinition(name, inputs, outputs)
 end
 function define(srcs)
     for i, d in ipairs(srcs) do
-        createDefinition(table.unpack(d))
+        node_definitions[d[1]] = createDefinition(table.unpack(d))
     end
 end
 
@@ -60,7 +58,6 @@ define {
     {"VERTEX_POSITION", {}, {{"float3_t", "type"}}},
     {"vec4_w1", {{"float3_t", "type"}}, {{"float4_t", "type"}}},
     {"SV_POSITION", {{"float4_t", "type"}}, {}},
-
     {"const_float4_color", {}, {{"value", "float4", "color"}}},
     {"SV_TARGET", {{"float4_t", "type"}}, {}}
 
@@ -93,6 +90,124 @@ define {
 -- scene
 ------------------------------------------------------------------------------
 local scene = plugnode.scene.new()
+function createNode(definition, position)
+    return scene.create(definition, position[1], position[2])
+end
+function unpack_slot(src)
+    if type(src) == "table" then
+        return table.unpack(src)
+    else
+        return src, 1
+    end
+end
+function createLink(src, dst)
+    local src_node, src_slot = unpack_slot(src)
+    local dst_node, dst_slot = unpack_slot(dst)
+    scene.link(src_node, src_slot, dst_node, dst_slot)
+end
+local v_pos = createNode(node_definitions.VERTEX_POSITION, {10, 20})
+local to_v4 = createNode(node_definitions.vec4_w1, {210, 100})
+local sv_pos = createNode(node_definitions.SV_POSITION, {510, 180})
+createLink(v_pos, to_v4)
+createLink(to_v4, sv_pos)
 
 ------------------------------------------------------------------------------
+-- eval
+------------------------------------------------------------------------------
+function generate_vs(node)
+    print("-- generate_vs --")
+    local vs_context = {
+        attributes = {},
+        outputs = {},
+        expressions = {}
+    }
+    -- build tree
+    function traverse(node)
+        for i, slot in ipairs(node.inslots) do
+            local src = slot.get_src_node()
+            if src then
+                traverse(src)
+                if src.name == 'VERTEX_POSITION' then
+                    -- vertex attributes
+                    table.insert(vs_context.attributes, 'float3 aPosition : POSITION;\n')
+                end
+                if node.name == 'SV_POSITION' then
+                    -- vs out
+                    table.insert(vs_context.outputs, 'linear float4 fPosition : SV_POSITION;\n')
+                end
+                table.insert(vs_context.expressions, string.format('%s = %s;\n', node.name, src.name))
+            end
+        end
+    end
+    traverse(node)
+    
+    local sb = {}
+    --[[
+    struct VS_INPUT
+    {
+        float3 m_position : POSITION;
+        float3 m_normal   : NORMAL;
+    };
+    struct VS_OUTPUT
+    {
+        linear        float4 m_position     : SV_POSITION;
+        linear        float3 m_normal       : NORMAL;
+    };
+    VS_OUTPUT main(VS_INPUT _in) 
+    {
+        VS_OUTPUT ret;
+        ret.m_normal = mul(uWorldMatrix, float4(_in.m_normal, 0.0));
+        ret.m_position = mul(uViewProjMatrix, mul(uWorldMatrix, float4(_in.m_position, 1.0)));
+        return ret;
+    }
+    ]]
+
+    -- attributes
+    table.insert(sb, "struct VS_INPUT\n")
+    table.insert(sb, "{\n")
+    for i, x in ipairs(vs_context.attributes) do
+        table.insert(sb, '    ')
+        table.insert(sb, x)
+    end
+    table.insert(sb, "};\n")
+    table.insert(sb, "\n");
+
+    -- vs_out
+    table.insert(sb, "struct VS_OUTPUT\n")
+    table.insert(sb, "{\n")
+    for i, x in ipairs(vs_context.outputs) do
+        table.insert(sb, '    ')
+        table.insert(sb, x)
+    end
+    table.insert(sb, "};\n")
+    table.insert(sb, "\n");
+
+    -- main
+    table.insert(sb, "VS_OUTPUT main(VS_INPUT _in)\n")
+    table.insert(sb, "{\n")
+    table.insert(sb, "    VS_OUTPUT ret;\n")
+    for i, x in ipairs(vs_context.expressions) do
+        table.insert(sb, '    ')
+        table.insert(sb, x)
+    end
+    table.insert(sb, "}\n")
+    table.insert(sb, "");
+
+    return table.concat(sb, "")
+end
+function eval_node(node)
+    if node.name == "SV_POSITION" then
+        local vs = generate_vs(node)
+        print(vs)
+    end
+end
+function eval_graph(scene)
+    for i, node in ipairs(scene) do
+        if node.is_dst then
+            -- 終端ノードを処理する
+            eval_node(node)
+        end
+    end
+end
+
 return {definitions, scene, eval_graph}
