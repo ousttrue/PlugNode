@@ -32,7 +32,7 @@ public:
     {
     }
 
-    void Show(const NodeDefinitionManager *definitions, NodeScene *scene)
+    bool Show(const NodeDefinitionManager *definitions, NodeScene *scene)
     {
         m_context.NewFrame();
 
@@ -48,6 +48,8 @@ public:
             }
             ImGui::EndChild();
         }
+
+        bool isUpdated = false;
 
         {
             // 右隣に描画
@@ -83,7 +85,10 @@ public:
                             node->Process(draw_list, &m_context);
                         }
                         // Open context menu
-                        m_context.ProcessClick(definitions, scene);
+                        if (m_context.ProcessClick(definitions, scene))
+                        {
+                            isUpdated = true;
+                        }
                     }
                     m_context.EndCanvas(draw_list);
                     ImGui::EndChild();
@@ -93,6 +98,8 @@ public:
             }
             ImGui::EndGroup();
         }
+
+        return isUpdated;
     }
 };
 
@@ -106,15 +113,27 @@ NodeGraph::~NodeGraph()
     delete m_impl;
 }
 
-void NodeGraph::ImGui(NodeDefinitionManager *definitions,
+bool NodeGraph::ImGui(NodeDefinitionManager *definitions,
                       NodeScene *scene)
 {
     static bool s_show = true;
+    static bool s_isFirst = true;
+    bool isUpdated = false;
+    if (s_isFirst)
+    {
+        s_isFirst = false;
+        isUpdated = true;
+    }
+
     if (ImGui::Begin("PlugNode", &s_show))
     {
-        m_impl->Show(definitions, scene);
+        if (m_impl->Show(definitions, scene))
+        {
+            isUpdated = true;
+        }
     }
     ImGui::End();
+    return isUpdated;
 }
 
 } // namespace plugnode

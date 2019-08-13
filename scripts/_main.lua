@@ -34,11 +34,12 @@ while window.is_running() do
         camera.window_input(window_state)
     end
 
-    -- eval node
-    eval_graph(scene)
-
     gui.show()
-    graph.imgui(definitions, scene)
+
+    if graph.imgui(definitions, scene) then
+        -- graph updated
+        eval_graph(scene)
+    end
 
     local context = dx11.new_frame(window_state)
 

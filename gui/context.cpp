@@ -221,7 +221,7 @@ ImU32 Context::GetBGColor(int m_id) const
     }
 }
 
-void Context::ProcessClick(
+bool Context::ProcessClick(
     const NodeDefinitionManager *definitions,
     NodeScene *scene)
 {
@@ -232,6 +232,8 @@ void Context::ProcessClick(
         m_open_context_menu = true;
         m_activeSlot = nullptr;
     }
+
+    bool isUpdated = false;
     if (ImGui::IsMouseClicked(0))
     {
         if (m_activeSlot)
@@ -242,6 +244,7 @@ void Context::ProcessClick(
                 if (slot->Link(m_activeSlot))
                 {
                     //
+                    isUpdated = true;
                 }
             }
             m_activeSlot = nullptr;
@@ -258,7 +261,10 @@ void Context::ProcessClick(
                 auto inSlot = scene->GetHoverInSlot();
                 if (inSlot)
                 {
-                    inSlot->Disconnect();
+                    if (inSlot->Disconnect())
+                    {
+                        isUpdated = true;
+                    }
                 }
             }
         }
@@ -292,6 +298,7 @@ void Context::ProcessClick(
             if (ImGui::MenuItem("Delete", NULL))
             {
                 scene->Remove(node);
+                isUpdated = true;
             }
             /*
             if (ImGui::MenuItem("Copy", NULL, false, false))
@@ -312,6 +319,8 @@ void Context::ProcessClick(
         ImGui::EndPopup();
     }
     ImGui::PopStyleVar();
+
+    return isUpdated;
 }
 
 void Context::DrawLink(ImDrawList *draw_list)

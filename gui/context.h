@@ -41,7 +41,7 @@ public:
     bool IsHovered(int ID) const;
     bool IsSelected(int ID) const;
     uint32_t GetBGColor(int m_id) const;
-    void ProcessClick(
+    bool ProcessClick(
         const class NodeDefinitionManager *definitions,
         class NodeScene *scene);
     void DrawLink(ImDrawList *draw_list);

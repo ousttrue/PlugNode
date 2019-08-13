@@ -14,7 +14,7 @@ public:
     NodeGraph();
     ~NodeGraph();
 
-    void ImGui(class NodeDefinitionManager *definitions,
+    bool ImGui(class NodeDefinitionManager *definitions,
                class NodeScene *scene);
 };
 

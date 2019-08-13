@@ -74,9 +74,15 @@ public:
     virtual bool Acceptable(const std::shared_ptr<OutSlotBase> &src) = 0;
     virtual bool Link(const std::shared_ptr<OutSlotBase> &src) = 0;
 
-    void Disconnect()
+    bool Disconnect()
     {
+        auto src = Src.lock();
+        if (!src)
+        {
+            return false;
+        }
         Src.reset();
+        return true;
     }
     std::shared_ptr<Node> GetSrcNode();
 
