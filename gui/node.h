@@ -27,7 +27,8 @@ public:
 
     Node(const std::shared_ptr<NodeDefinition> &definition, const std::array<float, 2> &pos);
     int GetId() const { return m_id; }
-    std::string Name;
+    std::array<char, 64> Name;
+    std::shared_ptr<NodeDefinition> Definition;
 
     void DrawLeftPanel(Context *context) const;
 

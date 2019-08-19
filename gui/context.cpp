@@ -288,7 +288,7 @@ bool Context::ProcessClick(
         if (m_node_selected != -1)
         {
             auto node = scene->GetFromId(m_node_selected);
-            ImGui::Text("Node '%s'", node->Name.c_str());
+            ImGui::Text("Node '%s'", node->Name.data());
             ImGui::Separator();
             /*
             if (ImGui::MenuItem("Rename..", NULL, false, false))

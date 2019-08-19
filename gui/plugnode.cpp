@@ -145,7 +145,10 @@ void lua_require_plugnode(lua_State *L)
                 return &node->m_outslots;
             });
             d->Getter("name", [](plugnode::Node *node) {
-                return node->Name;
+                return std::string(node->Name.data());
+            });
+            d->Getter("definition", [](plugnode::Node *node) {
+                return node->Definition;
             });
         })
         .LuaNewType(L);
