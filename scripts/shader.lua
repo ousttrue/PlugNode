@@ -119,29 +119,76 @@ function generate_vs(node)
     local vs_context = {
         attributes = {},
         outputs = {},
-        expressions = {}
+        expressions = {},
+        nodes = {}
     }
+    vs_context.add_node = function(node)
+        if node.name == "VERTEX_POSITION" then
+            table.insert(vs_context.attributes, node)
+            vs_context.nodes[node.name] = {
+                rhs = "aPosition"
+            }
+        elseif node.name == "SV_POSITION" then
+            table.insert(vs_context.outputs, node)
+            vs_context.nodes[node.name] = {
+                lhs = "ret.fPosition = %s"
+            }
+        else
+            -- expression
+            vs_context.nodes[node.name] = {
+                lhs = string.format("float4 %s = float4(%%s, 1)", node.name),
+                rhs = node.name,
+            }
+        end
+    end
+    vs_context.write_attributes = function(sb)
+        table.insert(sb, "struct VS_INPUT\n")
+        table.insert(sb, "{\n")
+        for i, x in ipairs(vs_context.attributes) do
+            table.insert(sb, "    float3 aPosition: POSITION;\n")
+        end
+        table.insert(sb, "};\n")
+        table.insert(sb, "\n")
+    end
+    vs_context.write_out = function(sb)
+        table.insert(sb, "struct VS_OUTPUT\n")
+        table.insert(sb, "{\n")
+        for i, x in ipairs(vs_context.outputs) do
+            table.insert(sb, "    linear float4 fPosition: SV_POSITION;\n")
+        end
+        table.insert(sb, "};\n")
+        table.insert(sb, "\n")
+    end
+    vs_context.add_expression = function(lhs, rhs)
+        table.insert(vs_context.expressions, {lhs, rhs})
+    end
+    vs_context.write_expressions = function(sb)
+        -- main
+        table.insert(sb, "VS_OUTPUT main(VS_INPUT _in)\n")
+        table.insert(sb, "{\n")
+        table.insert(sb, "    VS_OUTPUT ret;\n")
+        for i, x in ipairs(vs_context.expressions) do
+            local rhs = x[2].name
+            local lhs = string.format(vs_context.nodes[x[1].name].lhs, rhs)
+            table.insert(sb, string.format("    %s;\n", lhs, rhs))
+        end
+        table.insert(sb, "}\n")
+        table.insert(sb, "")
+    end
+
     -- build tree
     function traverse(node)
+        vs_context.add_node(node)
         for i, slot in ipairs(node.inslots) do
-            if node.name == 'VERTEX_POSITION' then
-                -- vertex attributes
-                table.insert(vs_context.attributes, 'float3 aPosition : POSITION;\n')
-            end
-            if node.name == 'SV_POSITION' then
-                -- vs out
-                table.insert(vs_context.outputs, 'linear float4 fPosition : SV_POSITION;\n')
-            end
-
             local src = slot.get_src_node()
             if src then
                 traverse(src)
-                table.insert(vs_context.expressions, string.format('%s = %s;\n', node.name, src.name))
+                vs_context.add_expression(node, src)
             end
         end
     end
     traverse(node)
-    
+
     local sb = {}
     --[[
     struct VS_INPUT
@@ -162,37 +209,9 @@ function generate_vs(node)
         return ret;
     }
     ]]
-
-    -- attributes
-    table.insert(sb, "struct VS_INPUT\n")
-    table.insert(sb, "{\n")
-    for i, x in ipairs(vs_context.attributes) do
-        table.insert(sb, '    ')
-        table.insert(sb, x)
-    end
-    table.insert(sb, "};\n")
-    table.insert(sb, "\n");
-
-    -- vs_out
-    table.insert(sb, "struct VS_OUTPUT\n")
-    table.insert(sb, "{\n")
-    for i, x in ipairs(vs_context.outputs) do
-        table.insert(sb, '    ')
-        table.insert(sb, x)
-    end
-    table.insert(sb, "};\n")
-    table.insert(sb, "\n");
-
-    -- main
-    table.insert(sb, "VS_OUTPUT main(VS_INPUT _in)\n")
-    table.insert(sb, "{\n")
-    table.insert(sb, "    VS_OUTPUT ret;\n")
-    for i, x in ipairs(vs_context.expressions) do
-        table.insert(sb, '    ')
-        table.insert(sb, x)
-    end
-    table.insert(sb, "}\n")
-    table.insert(sb, "");
+    vs_context.write_attributes(sb)
+    vs_context.write_out(sb)
+    vs_context.write_expressions(sb)
 
     return table.concat(sb, "")
 end
