@@ -3,8 +3,8 @@
 ------------------------------------------------------------------------------
 local definitions = plugnode.definition_manager.new()
 local node_definitions = {}
-function createDefinition(name, inputs, outputs)
-    local node = definitions.create(name)
+function createDefinition(name, default_name, inputs, outputs)
+    local node = definitions.create(name, default_name)
     for i, p in ipairs(inputs) do
         node.inputs.push_back(p)
     end
@@ -55,11 +55,11 @@ float4 main(VS_OUTPUT _in): SV_Target
 }
 --]]
 define {
-    {"VERTEX_POSITION", {}, {{"float3_t", "type"}}},
-    {"vec4_w1", {{"float3_t", "type"}}, {{"float4_t", "type"}}},
-    {"SV_POSITION", {{"float4_t", "type"}}, {}},
-    {"const_float4_color", {}, {{"value", "float4", "color"}}},
-    {"SV_TARGET", {{"float4_t", "type"}}, {}}
+    {"VERTEX_POSITION", "aPosition", {}, {{"float3_t", "type"}}},
+    {"vec4_w1", "vec4_w1", {{"float3_t", "type"}}, {{"float4_t", "type"}}},
+    {"SV_POSITION", "fPosition", {{"float4_t", "type"}}, {}},
+    {"const_float4_color", "const_color", {}, {{"value", "float4", "color"}}},
+    {"SV_TARGET", "result", {{"float4_t", "type"}}, {}}
 
     -- {"uniform_matrix", {}, {{"value", "mat4_t"}}}
     -- {"attr_position_vec3", {}, {{"vec3", "type"}}},
@@ -137,7 +137,7 @@ function generate_vs(node)
             -- expression
             vs_context.nodes[node.name] = {
                 lhs = string.format("float4 %s = float4(%%s, 1)", node.name),
-                rhs = node.name,
+                rhs = node.name
             }
         end
     end
@@ -190,25 +190,6 @@ function generate_vs(node)
     traverse(node)
 
     local sb = {}
-    --[[
-    struct VS_INPUT
-    {
-        float3 m_position : POSITION;
-        float3 m_normal   : NORMAL;
-    };
-    struct VS_OUTPUT
-    {
-        linear        float4 m_position     : SV_POSITION;
-        linear        float3 m_normal       : NORMAL;
-    };
-    VS_OUTPUT main(VS_INPUT _in) 
-    {
-        VS_OUTPUT ret;
-        ret.m_normal = mul(uWorldMatrix, float4(_in.m_normal, 0.0));
-        ret.m_position = mul(uViewProjMatrix, mul(uWorldMatrix, float4(_in.m_position, 1.0)));
-        return ret;
-    }
-    ]]
     vs_context.write_attributes(sb)
     vs_context.write_out(sb)
     vs_context.write_expressions(sb)
@@ -219,6 +200,9 @@ function eval_node(node)
     if node.name == "SV_POSITION" then
         local vs = generate_vs(node)
         print(vs)
+    elseif node.name == "SV_TARGET" then
+        local ps = generate_ps(node)
+        print(ps)
     end
 end
 function eval_graph(scene)

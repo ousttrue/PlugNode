@@ -19,8 +19,8 @@ class NodeDefinition
     NodeDefinition &operator=(const NodeDefinition &) = delete;
 
 public:
-    NodeDefinition(const std::string &name)
-        : Name(name)
+    NodeDefinition(const std::string &name, const std::string &defaultName)
+        : Name(name), DefaultName(defaultName)
     {
     }
 
@@ -29,6 +29,7 @@ public:
     }
 
     std::string Name;
+    std::string DefaultName;
     std::vector<NodeSlotDefinition> Inputs;
     std::vector<NodeSlotDefinition> Outputs;
 
@@ -41,7 +42,7 @@ public:
     std::vector<std::shared_ptr<NodeDefinition>> m_definitions;
 
 public:
-    std::shared_ptr<NodeDefinition> Create(const std::string &name);
+    std::shared_ptr<NodeDefinition> Create(const std::string &name, const std::string &defaultName);
     int GetCount() const { return (int)m_definitions.size(); }
     std::shared_ptr<NodeDefinition> Get(int index)
     {

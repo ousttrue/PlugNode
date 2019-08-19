@@ -64,8 +64,8 @@ void lua_require_plugnode(lua_State *L)
     definitions
         .DefaultConstructorAndDestructor()
         .MetaIndexDispatcher([](auto d) {
-            d->Method("create", [](plugnode::NodeDefinitionManager *p, std::string name) {
-                return p->Create(name);
+            d->Method("create", [](plugnode::NodeDefinitionManager *p, const std::string name, const std::string defaultName) {
+                return p->Create(name, defaultName);
             });
             d->Method("get_count", &plugnode::NodeDefinitionManager::GetCount);
             d->IndexGetter([](plugnode::NodeDefinitionManager *l, int i) {
