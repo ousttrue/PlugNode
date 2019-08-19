@@ -124,17 +124,18 @@ function generate_vs(node)
     -- build tree
     function traverse(node)
         for i, slot in ipairs(node.inslots) do
+            if node.name == 'VERTEX_POSITION' then
+                -- vertex attributes
+                table.insert(vs_context.attributes, 'float3 aPosition : POSITION;\n')
+            end
+            if node.name == 'SV_POSITION' then
+                -- vs out
+                table.insert(vs_context.outputs, 'linear float4 fPosition : SV_POSITION;\n')
+            end
+
             local src = slot.get_src_node()
             if src then
                 traverse(src)
-                if src.name == 'VERTEX_POSITION' then
-                    -- vertex attributes
-                    table.insert(vs_context.attributes, 'float3 aPosition : POSITION;\n')
-                end
-                if node.name == 'SV_POSITION' then
-                    -- vs out
-                    table.insert(vs_context.outputs, 'linear float4 fPosition : SV_POSITION;\n')
-                end
                 table.insert(vs_context.expressions, string.format('%s = %s;\n', node.name, src.name))
             end
         end
