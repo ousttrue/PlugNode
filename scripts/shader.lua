@@ -114,6 +114,36 @@ createLink(to_v4, sv_pos)
 ------------------------------------------------------------------------------
 -- eval
 ------------------------------------------------------------------------------
+function get_type(definition)
+    if definition.type == "type" then
+        return string.sub(definition.name, 1, -3)
+    else
+        return definition.type
+    end
+end
+function get_attribute(node)
+    -- float3 aPosition: POSITION
+    local type = get_type(node.definition.outputs[1])
+    local name = node.name
+    local semantic = string.sub(node.definition.name, 8)
+    return string.format("%s %s : %s", type, name, semantic)
+end
+function get_vs_output(node)
+    -- linear float4 fPosition: SV_POSITION
+    local type = get_type(node.definition.inputs[1])
+    local name = node.name
+    local semantic = node.definition.name
+    return string.format("%s %s : %s", type, name, semantic)
+end
+function get_expression(lhs, rhs)
+    if lhs.definition.name == "SV_POSITION" then
+        return string.format("return %s", rhs.name)
+    end
+    if lhs.definition.name == "vec4_w1" then
+        return string.format("%s %s=float4(%s, 1)", get_type(lhs.definition.outputs[1]), lhs.name, rhs.name)
+    end
+    return string.format("unknown expression: %s = %s", lhs, rhs)
+end
 function generate_vs(node)
     print("-- generate_vs --")
     local vs_context = {
@@ -123,29 +153,17 @@ function generate_vs(node)
         nodes = {}
     }
     vs_context.add_node = function(node)
-        if node.name == "VERTEX_POSITION" then
+        if node.definition.name == "VERTEX_POSITION" then
             table.insert(vs_context.attributes, node)
-            vs_context.nodes[node.name] = {
-                rhs = "aPosition"
-            }
-        elseif node.name == "SV_POSITION" then
+        elseif node.definition.name == "SV_POSITION" then
             table.insert(vs_context.outputs, node)
-            vs_context.nodes[node.name] = {
-                lhs = "ret.fPosition = %s"
-            }
-        else
-            -- expression
-            vs_context.nodes[node.name] = {
-                lhs = string.format("float4 %s = float4(%%s, 1)", node.name),
-                rhs = node.name
-            }
         end
     end
     vs_context.write_attributes = function(sb)
         table.insert(sb, "struct VS_INPUT\n")
         table.insert(sb, "{\n")
         for i, x in ipairs(vs_context.attributes) do
-            table.insert(sb, "    float3 aPosition: POSITION;\n")
+            table.insert(sb, string.format("    %s\n", get_attribute(x)))
         end
         table.insert(sb, "};\n")
         table.insert(sb, "\n")
@@ -154,7 +172,7 @@ function generate_vs(node)
         table.insert(sb, "struct VS_OUTPUT\n")
         table.insert(sb, "{\n")
         for i, x in ipairs(vs_context.outputs) do
-            table.insert(sb, "    linear float4 fPosition: SV_POSITION;\n")
+            table.insert(sb, string.format("    %s\n", get_vs_output(x)))
         end
         table.insert(sb, "};\n")
         table.insert(sb, "\n")
@@ -168,9 +186,9 @@ function generate_vs(node)
         table.insert(sb, "{\n")
         table.insert(sb, "    VS_OUTPUT ret;\n")
         for i, x in ipairs(vs_context.expressions) do
-            local rhs = x[2].name
-            local lhs = string.format(vs_context.nodes[x[1].name].lhs, rhs)
-            table.insert(sb, string.format("    %s;\n", lhs, rhs))
+            local lhs = x[1]
+            local rhs = x[2]
+            table.insert(sb, string.format("    %s;\n", get_expression(lhs, rhs)))
         end
         table.insert(sb, "}\n")
         table.insert(sb, "")
@@ -197,7 +215,7 @@ function generate_vs(node)
     return table.concat(sb, "")
 end
 function eval_node(node)
-    if node.name == "SV_POSITION" then
+    if node.definition.name == "SV_POSITION" then
         local vs = generate_vs(node)
         print(vs)
     elseif node.name == "SV_TARGET" then

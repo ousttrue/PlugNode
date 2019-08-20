@@ -40,6 +40,10 @@ void lua_require_plugnode(lua_State *L)
             ss << "[" << socket->type << "]" << socket->name;
             return ss.str();
         })
+        .MetaIndexDispatcher([](auto d) {
+            d->Getter("name", &plugnode::NodeSlotDefinition::name);
+            d->Getter("type", &plugnode::NodeSlotDefinition::type);
+        })
         .LuaNewType(L);
     lua_setfield(L, -2, "node_socket");
 
