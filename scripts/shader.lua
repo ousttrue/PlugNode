@@ -58,7 +58,7 @@ define {
     {"VERTEX_POSITION", "aPosition", {}, {{"float3_t", "type"}}},
     {"vec4_w1", "vec4_w1", {{"float3_t", "type"}}, {{"float4_t", "type"}}},
     {"VSOUT_POSITION", "fPosition", {{"float4_t", "type"}}, {}},
-    {"const_float4_color", "const_color", {}, {{"value", "float4", "color"}}},
+    {"CONST_float4_color", "const_color", {}, {{"value", "float4", "color"}}},
     {"PSOUT_COLOR", "result", {{"float4_t", "type"}}, {}}
 
     -- {"uniform_matrix", {}, {{"value", "mat4_t"}}}
@@ -105,11 +105,16 @@ function createLink(src, dst)
     local dst_node, dst_slot = unpack_slot(dst)
     scene.link(src_node, src_slot, dst_node, dst_slot)
 end
-local v_pos = createNode(node_definitions.VERTEX_POSITION, {10, 20})
+-- vs
+local vsin_pos = createNode(node_definitions.VERTEX_POSITION, {10, 20})
 local to_v4 = createNode(node_definitions.vec4_w1, {210, 100})
-local sv_pos = createNode(node_definitions.VSOUT_POSITION, {510, 180})
-createLink(v_pos, to_v4)
-createLink(to_v4, sv_pos)
+local vsout = createNode(node_definitions.VSOUT_POSITION, {510, 180})
+createLink(vsin_pos, to_v4)
+createLink(to_v4, vsout)
+-- ps
+local const_color = createNode(node_definitions.CONST_float4_color, {10, 260})
+local psout = createNode(node_definitions.PSOUT_COLOR, {210, 340})
+createLink(const_color, psout)
 
 ------------------------------------------------------------------------------
 -- eval
@@ -132,6 +137,13 @@ function get_attribute(node)
     local semantic = get_semantic(node.definition.name)
     return string.format("%s %s : %s", type, name, semantic)
 end
+function get_const(node)
+    -- float4 color = float4(1, 1, 1, 1)
+    local type = get_type(node.definition.outputs[1])
+    local name = node.name
+    local value = "float4(1, 1, 1, 1)"
+    return string.format("%s %s = %s", type, name, value)
+end
 function get_vs_output(node)
     -- linear float4 fPosition: SV_POSITION
     local type = get_type(node.definition.inputs[1])
@@ -144,10 +156,13 @@ function get_vs_output(node)
 end
 function get_expression(lhs, rhs)
     if lhs.definition.name == "VSOUT_POSITION" then
-        return string.format("return %s", rhs.name)
+        return string.format("_out.%s = %s", lhs.name, rhs.name)
     end
     if lhs.definition.name == "vec4_w1" then
-        return string.format("%s %s=float4(%s, 1)", get_type(lhs.definition.outputs[1]), lhs.name, rhs.name)
+        return string.format("%s %s = float4(%s, 1)", get_type(lhs.definition.outputs[1]), lhs.name, rhs.name)
+    end
+    if lhs.definition.name == "PSOUT_COLOR" then
+        return string.format("return %s", rhs.name)
     end
     return string.format("unknown expression: %s = %s", lhs, rhs)
 end
@@ -169,6 +184,13 @@ function create_context()
         end
         table.insert(sb, "};\n")
         table.insert(sb, "\n")
+    end
+    self.write_const = function(sb)
+        for i, x in ipairs(self.nodes) do
+            if string.sub(x.definition.name, 1, 6) == "CONST_" then
+                table.insert(sb, string.format("    %s;\n", get_const(x)))
+            end
+        end
     end
     self.write_vsout = function(sb)
         table.insert(sb, "struct VS_OUTPUT\n")
@@ -200,7 +222,22 @@ function create_context()
         -- main
         table.insert(sb, "VS_OUTPUT main(VS_INPUT _in)\n")
         table.insert(sb, "{\n")
-        table.insert(sb, "    VS_OUTPUT ret;\n")
+        self.write_const(sb)
+        table.insert(sb, string.format("    VS_OUTPUT _out;\n", vsout))
+        self.write_expressions(sb, vsout)
+        table.insert(sb, "}\n")
+        table.insert(sb, "")
+        return table.concat(sb, "")
+    end
+
+    self.to_ps = function(sb)
+        local sb = {}
+        self.write_vsout(sb)
+        -- main
+
+        table.insert(sb, "float4 main(VS_OUTPUT _in): SV_Target\n")
+        table.insert(sb, "{\n")
+        self.write_const(sb)
         self.write_expressions(sb)
         table.insert(sb, "}\n")
         table.insert(sb, "")
@@ -227,11 +264,29 @@ function generate_vs(node)
     -- export
     return context.to_vs()
 end
+function generate_ps(node)
+    print("-- generate_ps --")
+    local context = create_context()
+    -- build tree
+    function traverse(node)
+        context.add_node(node)
+        for i, slot in ipairs(node.inslots) do
+            local src = slot.get_src_node()
+            if src then
+                traverse(src)
+                context.add_expression(node, src)
+            end
+        end
+    end
+    traverse(node)
+    -- export
+    return context.to_ps()
+end
 function eval_node(node)
     if node.definition.name == "VSOUT_POSITION" then
         local vs = generate_vs(node)
         print(vs)
-    elseif node.name == "SV_TARGET" then
+    elseif node.definition.name == "PSOUT_COLOR" then
         local ps = generate_ps(node)
         print(ps)
     end
