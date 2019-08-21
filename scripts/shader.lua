@@ -56,6 +56,7 @@ float4 main(VS_OUTPUT _in): SV_Target
 --]]
 define {
     {"VERTEX_POSITION", "aPosition", {}, {{"float3_t", "type"}}},
+    {"VERTEX_NORMAL", "aNormal", {}, {{"float3_t", "type"}}},
     {"vec4_w1", "vec4_w1", {{"float3_t", "type"}}, {{"float4_t", "type"}}},
     {"VSOUT_POSITION", "fPosition", {{"float4_t", "type"}}, {}},
     {"CONST_float4_color", "const_color", {}, {{"value", "float4", "color"}}},
@@ -107,6 +108,7 @@ function createLink(src, dst)
 end
 -- vs
 local vsin_pos = createNode(node_definitions.VERTEX_POSITION, {10, 20})
+local vsin_normal = createNode(node_definitions.VERTEX_NORMAL, {210, 20})
 local to_v4 = createNode(node_definitions.vec4_w1, {210, 100})
 local vsout = createNode(node_definitions.VSOUT_POSITION, {510, 180})
 createLink(vsin_pos, to_v4)
@@ -154,15 +156,25 @@ function get_vs_output(node)
     end
     return string.format("%s %s : %s", type, name, semantic)
 end
+function get_rhs(node)
+    local defname = node.definition.name
+    local pos = string.find(defname, "_")
+    print(pos, string.sub(defname, 1, pos - 1))
+    if string.sub(defname, 1, pos - 1) == "VERTEX" then
+        return "_in." .. node.name
+    else
+        return node.name
+    end
+end
 function get_expression(lhs, rhs)
     if lhs.definition.name == "VSOUT_POSITION" then
-        return string.format("_out.%s = %s", lhs.name, rhs.name)
+        return string.format("_out.%s = %s", lhs.name, get_rhs(rhs))
     end
     if lhs.definition.name == "vec4_w1" then
-        return string.format("%s %s = float4(%s, 1)", get_type(lhs.definition.outputs[1]), lhs.name, rhs.name)
+        return string.format("%s %s = float4(%s, 1)", get_type(lhs.definition.outputs[1]), lhs.name, get_rhs(rhs))
     end
     if lhs.definition.name == "PSOUT_COLOR" then
-        return string.format("return %s", rhs.name)
+        return string.format("return %s", get_rhs(rhs))
     end
     return string.format("unknown expression: %s = %s", lhs, rhs)
 end
@@ -179,7 +191,7 @@ function create_context()
         table.insert(sb, "{\n")
         for i, x in ipairs(self.nodes) do
             if string.sub(x.definition.name, 1, 7) == "VERTEX_" then
-                table.insert(sb, string.format("    %s\n", get_attribute(x)))
+                table.insert(sb, string.format("    %s;\n", get_attribute(x)))
             end
         end
         table.insert(sb, "};\n")
@@ -197,7 +209,7 @@ function create_context()
         table.insert(sb, "{\n")
         for i, x in ipairs(self.nodes) do
             if string.sub(x.definition.name, 1, 6) == "VSOUT_" then
-                table.insert(sb, string.format("    %s\n", get_vs_output(x)))
+                table.insert(sb, string.format("    %s;\n", get_vs_output(x)))
             end
         end
         table.insert(sb, "};\n")
@@ -225,6 +237,7 @@ function create_context()
         self.write_const(sb)
         table.insert(sb, string.format("    VS_OUTPUT _out;\n", vsout))
         self.write_expressions(sb, vsout)
+        table.insert(sb, "    return _out;\n")
         table.insert(sb, "}\n")
         table.insert(sb, "")
         return table.concat(sb, "")
@@ -262,6 +275,7 @@ function generate_vs(node)
     end
     traverse(node)
     -- export
+    table.insert(context.nodes, vsin_normal)
     return context.to_vs()
 end
 function generate_ps(node)
@@ -284,20 +298,25 @@ function generate_ps(node)
 end
 function eval_node(node)
     if node.definition.name == "VSOUT_POSITION" then
-        local vs = generate_vs(node)
-        print(vs)
+        return "vs", generate_vs(node)
     elseif node.definition.name == "PSOUT_COLOR" then
-        local ps = generate_ps(node)
-        print(ps)
+        return "ps", generate_ps(node)
     end
 end
 function eval_graph(scene)
+    local t = {}
     for i, node in ipairs(scene) do
         if node.is_dst then
             -- 終端ノードを処理する
-            eval_node(node)
+            local kind, shader = eval_node(node)
+            if kind == "vs" then
+                t.vs = shader
+            elseif kind == "ps" then
+                t.ps = shader
+            end
         end
     end
+    return t.vs, t.ps
 end
 
 return {definitions, scene, eval_graph}

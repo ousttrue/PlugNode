@@ -628,8 +628,14 @@ static int pmain(lua_State *L)
     return 1;
 }
 
+#include <plog/Log.h>
+#include <plog/Appenders/ConsoleAppender.h>
+
 int main(int argc, char **argv)
 {
+    static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
+    plog::init(plog::debug, &consoleAppender);
+
     int status, result;
     lua_State *L = luaL_newstate(); /* create state */
     if (L == NULL)

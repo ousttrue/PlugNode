@@ -52,6 +52,7 @@ void lua_require_app(lua_State *L)
         .MetaMethod(perilune::MetaKey::__gc, [](DX11Renderer *p) { delete p; })
         .MetaIndexDispatcher([](auto d) {
             d->Method("draw_teapot", &DX11Renderer::DrawTeapot);
+            d->Method("set_shader", &DX11Renderer::SetShader);
         })
         .LuaNewType(L);
     lua_setfield(L, -2, "dx11scene");

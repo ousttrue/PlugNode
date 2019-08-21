@@ -36,8 +36,10 @@
         "upvalueindex"
     ],
     "files.associations": {
+        "*.cshtml": "html",
         "exception": "cpp",
         "functional": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "xstring": "cpp"
     }
 }

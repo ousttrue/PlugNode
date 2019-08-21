@@ -38,7 +38,11 @@ while window.is_running() do
 
     if graph.imgui(definitions, scene) then
         -- graph updated
-        eval_graph(scene)
+        local vs, ps = eval_graph(scene)
+        if vs and ps then
+            print(vs, ps)
+            teapot.set_shader(vs, ps)
+        end
     end
 
     local context = dx11.new_frame(window_state)
