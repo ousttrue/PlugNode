@@ -28,7 +28,7 @@ class NodeSlotBase
     std::shared_ptr<NodePin> Pin;
 
 protected:
-    virtual std::array<float, 2> _OnImGui(Context *context) = 0;
+    virtual std::array<float, 2> _OnImGui(Context *context, bool *is_updated) = 0;
     virtual void _UpdatePinPosition(float padding) = 0;
     NodeSlotBase();
     template <typename T>
@@ -44,7 +44,7 @@ public:
     std::string Name;
     std::any TargetType;
     std::array<float, 4> Rect;
-    void ImGui(ImDrawList *draw_list, Context *context);
+    bool ImGui(ImDrawList *draw_list, Context *context);
 };
 
 enum class SlotType

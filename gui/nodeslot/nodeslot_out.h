@@ -15,7 +15,7 @@ public:
 class OutType : public OutSlot<TypeSlotType>
 {
 protected:
-    std::array<float, 2> _OnImGui(Context *context) override
+    std::array<float, 2> _OnImGui(Context *context, bool *is_updated) override
     {
         ImGui::LabelText(Name.c_str(), "" /*"##value"*/
                                           //, Format.c_str()
@@ -40,9 +40,9 @@ public:
 class OutFloatValue : public OutSlot<float>
 {
 protected:
-    std::array<float, 2> _OnImGui(Context *context) override
+    std::array<float, 2> _OnImGui(Context *context, bool *is_updated) override
     {
-        ImGui::InputFloat(Name.c_str() /*"##value"*/,
+        *is_updated = ImGui::InputFloat(Name.c_str() /*"##value"*/,
                           GetPinValue<float>()
                           //, Format.c_str()
         );
@@ -56,9 +56,9 @@ public:
     std::string Format;
     float Min = 0;
     float Max = 1.0f;
-    std::array<float, 2> _OnImGui(Context *context) override
+    std::array<float, 2> _OnImGui(Context *context, bool *is_updated) override
     {
-        ImGui::SliderFloat(Name.c_str() /*"##value"*/,
+        *is_updated = ImGui::SliderFloat(Name.c_str() /*"##value"*/,
                            GetPinValue<float>(), Min, Max
                            //, Format.c_str()
         );
@@ -73,9 +73,9 @@ public:
     // std::string Format;
     // float Min = 0;
     // float Max = 1.0f;
-    std::array<float, 2> _OnImGui(Context *context) override
+    std::array<float, 2> _OnImGui(Context *context, bool *is_updated) override
     {
-        ImGui::ColorPicker4(Name.c_str() /*"##value"*/,
+        *is_updated = ImGui::ColorPicker4(Name.c_str() /*"##value"*/,
                             GetPinValue<std::array<float, 4>>()->data()
                             //, Format.c_str()
         );

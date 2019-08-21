@@ -32,10 +32,10 @@ public:
 
     void DrawLeftPanel(Context *context) const;
 
-    void Process(ImDrawList *draw_list, Context *context);
+    bool Process(ImDrawList *draw_list, Context *context);
 
 private:
-    void _DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, Context *context);
+    bool _DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, Context *context);
 };
 
 } // namespace plugnode

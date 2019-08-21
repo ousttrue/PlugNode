@@ -18,18 +18,20 @@ NodeSlotBase::NodeSlotBase()
 {
 }
 
-void NodeSlotBase::ImGui(ImDrawList *draw_list, Context *context)
+bool NodeSlotBase::ImGui(ImDrawList *draw_list, Context *context)
 {
     auto pos = ImGui::GetCursorScreenPos();
     Rect[0] = pos.x;
     Rect[1] = pos.y;
-    auto size = _OnImGui(context);
+    auto is_updated = false;
+    auto size = _OnImGui(context, &is_updated);
     Rect[2] = size[0];
     Rect[3] = size[1];
     _UpdatePinPosition(context->GetNodeHorizontalPadding());
 
     auto pin = GetPin()->Position;
     IsHover = context->DrawPin(draw_list, pin[0], pin[1]);
+    return is_updated;
 }
 
 std::shared_ptr<OutSlotBase> OutSlotBase::Create(const NodeSlotDefinition &definition, SlotType slotType)

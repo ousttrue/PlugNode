@@ -86,7 +86,7 @@ void Node::DrawLeftPanel(Context *context) const
     ImGui::PopID();
 }
 
-void Node::Process(ImDrawList *draw_list, Context *context)
+bool Node::Process(ImDrawList *draw_list, Context *context)
 {
     ImGui::PushID(m_id);
 
@@ -97,7 +97,7 @@ void Node::Process(ImDrawList *draw_list, Context *context)
 
     // Display node contents first
     // ImGui::PushItemWidth(80 * scaling);
-    _DrawSlots(draw_list, node_rect_min, context);
+    auto is_updated = _DrawSlots(draw_list, node_rect_min, context);
     // ImGui::PopItemWidth();
 
     // Save the size of what we have emitted and whether any of the widgets are being used
@@ -140,13 +140,16 @@ void Node::Process(ImDrawList *draw_list, Context *context)
     }
 
     ImGui::PopID();
+
+    return is_updated;
 }
 
-void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, Context *context)
+bool Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, Context *context)
 {
     draw_list->ChannelsSetCurrent(1); // Foreground
     ImGui::SetCursorScreenPos(node_rect_min + NODE_WINDOW_PADDING);
 
+    auto is_updated = false;
     {
         ImGui::BeginGroup(); // Lock horizontal position
         ImGui::Text("%s", Definition->Name.c_str());
@@ -184,7 +187,10 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, Contex
             {
                 for (auto &out : m_outslots)
                 {
-                    out->ImGui(draw_list, context);
+                    if (out->ImGui(draw_list, context))
+                    {
+                        is_updated = true;
+                    }
                 }
             }
             else
@@ -195,6 +201,7 @@ void Node::_DrawSlots(ImDrawList *draw_list, const ImVec2 &node_rect_min, Contex
 
         ImGui::EndGroup();
     }
+    return is_updated;
 }
 
 } // namespace plugnode

@@ -114,7 +114,12 @@ void lua_require_plugnode(lua_State *L)
                     auto x = std::any_cast<float>(value);
                     return perilune::LuaPush<float>::Push(L, x);
                 }
-                else
+                else if (value.type() == typeid(std::array<float, 4>))
+                {
+                    auto x = std::any_cast<std::array<float, 4>>(value);
+                    return perilune::LuaPush<std::array<float, 4>>::Push(L, x);
+                }
+                 else
                 {
                     return 0;
                 }

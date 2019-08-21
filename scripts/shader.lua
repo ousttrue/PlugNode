@@ -141,7 +141,7 @@ function get_const(node)
     -- float4 color = float4(1, 1, 1, 1)
     local type = get_type(node.definition.outputs[1])
     local name = node.name
-    local value = "float4(1, 1, 1, 1)"
+    local value = string.format("float4(%s, %s, %s, %s)", table.unpack(node.outslots[1].value))
     return string.format("%s %s = %s", type, name, value)
 end
 function get_vs_output(node)

@@ -82,7 +82,10 @@ public:
                         for (auto &node : scene->m_nodes)
                         {
                             // move, draw
-                            node->Process(draw_list, &m_context);
+                            if (node->Process(draw_list, &m_context))
+                            {
+                                isUpdated = true;
+                            }
                         }
                         // Open context menu
                         if (m_context.ProcessClick(definitions, scene))

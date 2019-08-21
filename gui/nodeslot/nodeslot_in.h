@@ -82,7 +82,7 @@ public:
 class InType : public InSlot<TypeSlotType>
 {
 public:
-    std::array<float, 2> _OnImGui(Context *context) override
+    std::array<float, 2> _OnImGui(Context *context, bool *is_updated) override
     {
         ImGui::Text(Name.c_str());
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
@@ -102,7 +102,7 @@ public:
         }
     }
 
-    template<typename T>
+    template <typename T>
     static std::shared_ptr<InSlotBase> Create(const NodeSlotDefinition &definition)
     {
         auto p = new InType;
@@ -119,7 +119,7 @@ template <typename T>
 class InLabelSlot : public InSlot<T>
 {
 public:
-    std::array<float, 2> _OnImGui(Context *context) override
+    std::array<float, 2> _OnImGui(Context *context, bool *is_updated) override
     {
         ImGui::Text(Name.c_str());
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
@@ -129,11 +129,11 @@ public:
 class InFloatValue : public InSlot<float>
 {
 public:
-    std::array<float, 2> _OnImGui(Context *context) override
+    std::array<float, 2> _OnImGui(Context *context, bool *is_updated) override
     {
-        ImGui::InputFloat(Name.c_str() /*"##value"*/,
-                          GetPinValue<float>()
-                          //, Format.c_str()
+        *is_updated = ImGui::InputFloat(Name.c_str() /*"##value"*/,
+                                        GetPinValue<float>()
+                                        //, Format.c_str()
         );
         return *(std::array<float, 2> *)&ImGui::GetItemRectSize();
     }
